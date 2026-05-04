@@ -1,0 +1,2907 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>循环球式转向器设计计算工具（课程设计版本）· 广西大学 · 车辆工程专业</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1a5fa8;--blue2:#2e7dd1;--blue-lt:#e8f2fc;
+  --green:#1a7a3c;--green-lt:#e6f5ec;
+  --red:#c0392b;--red-lt:#fdecea;
+  --orange:#c55a11;--orange-lt:#fdf3e6;
+  --amber:#b8860b;--amber-lt:#fef3cd;
+  --purple:#6b21a8;--purple-lt:#f3e8ff;
+  --teal:#0e7490;--teal-lt:#e0f4f8;
+  --g1:#1c2b3a;--g2:#374a5c;--g3:#5a6e82;--g4:#8fa3b5;
+  --g5:#c8d6e0;--g6:#e8eff4;--g7:#f5f8fb;
+  --bg:#ecf2f8;--card:#fff;--r:10px;--sh:0 2px 14px rgba(0,0,0,.10)
+}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);
+  color:var(--g1);min-height:100vh;padding:16px 14px 50px;font-size:16px;line-height:1.7}
+.wrap{max-width:1180px;margin:0 auto}
+
+.hdr{background:linear-gradient(135deg,#1a3a5c 0%,#1a5fa8 100%);color:#fff;
+  border-radius:var(--r);padding:22px 28px 18px;margin-bottom:16px;box-shadow:var(--sh)}
+.hdr h1{font-size:22px;font-weight:700;margin-bottom:5px}
+.hdr p{font-size:14px;opacity:.88}
+.tag{display:inline-block;background:rgba(255,255,255,.2);border-radius:4px;
+  padding:3px 10px;font-size:13px;margin-top:6px;margin-right:5px}
+
+.step-nav{display:flex;gap:0;margin-bottom:16px;border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.step-btn{flex:1;padding:12px 4px;font-size:13px;font-weight:700;text-align:center;
+  cursor:pointer;border:none;background:var(--g6);color:var(--g3);transition:.2s;
+  border-right:1px solid var(--g5);line-height:1.35}
+.step-btn:last-child{border-right:none}
+.step-btn.active{background:var(--blue);color:#fff}
+.step-btn .sn{display:block;font-size:18px;font-weight:800;margin-bottom:2px}
+.step-content{display:none}.step-content.active{display:block}
+
+.cols{display:grid;grid-template-columns:390px 1fr;gap:15px}
+@media(max-width:960px){.cols{grid-template-columns:1fr}}
+.card{background:var(--card);border-radius:var(--r);padding:20px;box-shadow:var(--sh);margin-bottom:15px}
+.card-h{font-size:15px;font-weight:700;color:var(--g2);margin-bottom:14px;
+  padding-bottom:9px;border-bottom:2.5px solid var(--blue-lt);display:flex;align-items:center;gap:8px}
+.icon-n{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;
+  display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+
+.grp{font-size:13px;font-weight:700;color:var(--g4);letter-spacing:.06em;text-transform:uppercase;
+  margin:15px 0 9px;padding-top:11px;border-top:1px dashed var(--g5)}
+.grp:first-child{margin-top:0;padding-top:0;border-top:none}
+.pr{margin-bottom:13px}.pr:last-child{margin-bottom:0}
+.pl{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+.pname{font-size:14px;color:var(--g2);font-weight:600}
+.pval{font-size:17px;font-weight:700;color:var(--blue)}
+.pval.c2{color:var(--orange)}.pval.c3{color:var(--teal)}.pval.c4{color:var(--purple)}
+.punit{font-size:12px;color:var(--g4);margin-left:3px}
+input[type=number]{
+  width:100%;padding:7px 10px;font-size:15px;font-weight:600;color:var(--g1);
+  border:2px solid var(--g5);border-radius:7px;outline:none;
+  background:#fff;transition:border-color .18s,box-shadow .18s;
+  -moz-appearance:textfield;text-align:center}
+input[type=number]:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,95,168,.13)}
+input[type=number]:hover{border-color:var(--g4)}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{opacity:1;height:28px}
+.pd{font-size:12px;color:var(--g4);margin-top:3px}
+
+.verdict{border-radius:9px;padding:13px 16px;display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.verdict.pass{background:var(--green-lt);border:2px solid var(--green);color:var(--green)}
+.verdict.warn{background:var(--amber-lt);border:2px solid #c8a000;color:#7a5800}
+.verdict.fail{background:var(--red-lt);border:2px solid var(--red);color:var(--red)}
+.verdict .vi{font-size:26px;flex-shrink:0}
+.verdict .vt{font-size:14px;line-height:1.5;font-weight:600}
+
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{background:var(--blue);color:#fff;padding:9px 10px;text-align:center;font-weight:600}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--g6);text-align:center;font-size:14px}
+.tbl tr:nth-child(even) td{background:var(--g7)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl td.label{text-align:left;font-weight:600;color:var(--g2);font-size:14px}
+.tbl td.sym{color:var(--blue);font-weight:700;font-size:15px}
+.tbl td.val{font-weight:700;color:var(--blue);font-size:15px}
+.tbl td.ok{color:var(--green);font-weight:700}
+.tbl td.fail{color:var(--red);font-weight:700}
+.tbl td.unit{color:var(--g4);font-size:12px}
+.tbl td.form{text-align:left;color:var(--g3);font-size:12.5px}
+
+.rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+@media(max-width:680px){.rgrid{grid-template-columns:1fr 1fr}}
+.rc_{background:var(--g7);border-radius:9px;padding:13px 10px;text-align:center;border:1.5px solid transparent}
+.rc_.hi{border-color:var(--blue);background:var(--blue-lt)}
+.rc_.ok{border-color:var(--green);background:var(--green-lt)}
+.rc_.bad{border-color:var(--red);background:var(--red-lt)}
+.rc_ .rl{font-size:12px;color:var(--g3);margin-bottom:4px}
+.rc_ .rv{font-size:21px;font-weight:700;color:var(--blue)}
+.rc_.ok .rv{color:var(--green)}.rc_.bad .rv{color:var(--red)}
+.rc_ .ru{font-size:11px;color:var(--g4)}
+
+.proc{background:var(--g7);border-radius:9px;padding:15px 17px;font-size:13px;margin-bottom:13px}
+.proc h4{font-weight:700;color:var(--g2);margin-bottom:10px;font-size:15px}
+.pg{display:grid;grid-template-columns:1fr auto;gap:4px 14px;align-items:baseline}
+.pg .eq{color:var(--g2);font-size:13px;padding:2px 0}
+.pg .pv{text-align:right;font-weight:700;font-size:14px;color:var(--blue)}
+.pv.pvg{color:var(--green)}.pv.pvo{color:var(--orange)}.pv.pvr{color:var(--red)}
+.pv.pvt{color:var(--teal)}.pv.pvp{color:var(--purple)}
+.pg .sep{grid-column:1/-1;border-top:1px dashed var(--g5);margin:5px 0}
+
+.alert{border-radius:9px;padding:12px 16px;font-size:14px;margin-bottom:14px}
+.alert.info{background:var(--blue-lt);border:1px solid #a0c8f0;color:#1a3a5c}
+.alert.warn{background:var(--amber-lt);border:1px solid #e0c060;color:#7a5800}
+
+.sec-ttl{font-size:16px;font-weight:700;color:var(--blue);margin:14px 0 10px;
+  padding:9px 14px;background:var(--blue-lt);border-radius:7px;border-left:5px solid var(--blue)}
+
+canvas.diag{display:block;width:100%;border-radius:10px;background:#f8fafc}
+
+.footer{text-align:center;font-size:13px;color:var(--g4);margin-top:10px;
+  padding-top:10px;border-top:1px solid var(--g5)}
+.info-row{background:var(--blue-lt);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13.5px}
+.info-row b{color:var(--blue)}
+
+/* ═══ LOGIN / TEACHER ═══ */
+.login-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.78);
+  display:flex;align-items:center;justify-content:center;z-index:9999;}
+.login-box{background:#fff;padding:32px;border-radius:12px;max-width:460px;width:92%;
+  box-shadow:0 10px 40px rgba(0,0,0,.4);}
+.login-box h2{color:#1a5fa8;margin-bottom:8px;font-size:22px;}
+.login-box .desc{color:#555;font-size:13px;margin-bottom:22px;line-height:1.6;}
+.lf{margin-bottom:16px;}.lf label{display:block;font-weight:700;font-size:13px;color:#444;margin-bottom:6px;}
+.lf input{width:100%;padding:10px 14px;border:2px solid #ddd;border-radius:7px;font-size:14px;transition:border-color .2s;}
+.lf input:focus{outline:none;border-color:#1a5fa8;}
+.lf .hint{font-size:12px;color:#888;margin-top:4px;}
+.lf .err{font-size:12px;color:#c0392b;margin-top:4px;display:none;}
+.login-btn{width:100%;padding:12px;background:#1a5fa8;color:#fff;border:none;border-radius:7px;
+  font-size:15px;font-weight:800;cursor:pointer;}
+.login-btn:hover{background:#1a3a5c;}
+.teacher-btn-hdr{background:rgba(255,255,255,.18);padding:8px 14px;border-radius:6px;
+  cursor:pointer;font-size:13px;font-weight:700;border:1px solid rgba(255,255,255,.3);margin-top:8px;display:inline-block;}
+/* ═══ SCORE / REVIEW ═══ */
+.score-banner{background:linear-gradient(135deg,#1a3a5c,#1a5fa8);color:#fff;
+  border-radius:10px;padding:24px;margin-bottom:16px;}
+.score-big{font-size:56px;font-weight:800;margin:8px 0;}
+.score-sub{font-size:14px;opacity:.88;}
+.score-details-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:16px;}
+.score-di{background:rgba(255,255,255,.15);padding:10px;border-radius:7px;text-align:center;}
+.score-di .dl{font-size:11px;opacity:.85;}
+.score-di .dv{font-size:18px;font-weight:800;margin-top:4px;}
+.upload-zone{border:2px dashed #a0c8f0;border-radius:8px;padding:36px 20px;text-align:center;
+  background:#f8faff;cursor:pointer;transition:.3s;}
+.upload-zone:hover{border-color:#1a5fa8;background:#eef5ff;}
+.grade-criteria-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0;}
+.grade-criteria-item{background:#f0f6ff;border:1px solid #c0d8f0;border-radius:8px;
+  padding:12px;text-align:center;}
+.grade-criteria-item .pct{font-size:26px;font-weight:800;color:#1a5fa8;}
+.grade-criteria-item .lbl{font-size:12px;color:#555;margin-top:4px;}
+.grade-criteria-item .desc{font-size:11px;color:#888;margin-top:3px;line-height:1.4;}
+.ai-loading{display:flex;flex-direction:column;align-items:center;gap:14px;padding:40px;}
+.spinner{width:44px;height:44px;border:4px solid #dde;border-top:4px solid #1a5fa8;
+  border-radius:50%;animation:spin .9s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.result-table-rev{width:100%;border-collapse:collapse;font-size:13px;}
+.result-table-rev th{background:#1a5fa8;color:#fff;padding:8px 10px;text-align:left;}
+.result-table-rev td{padding:7px 10px;border-bottom:1px solid #eee;}
+.result-table-rev tr:nth-child(even) td{background:#f8faff;}
+.badge-ok{background:#d4f0db;color:#1a7c3a;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;}
+.badge-warn{background:#fff3cd;color:#856404;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;}
+.badge-err{background:#fde8e7;color:#c0392b;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;}
+/* ═══ TEACHER PANEL ═══ */
+.student-item{background:#f8faff;border:1px solid #c0d8f0;border-radius:7px;padding:12px;
+  margin-bottom:10px;cursor:pointer;transition:.2s;}
+.student-item:hover{background:#e8eef8;}
+
+select{padding:7px 10px;border-radius:7px;border:2px solid var(--g5);
+  font-size:14px;color:var(--g1);background:#fff;cursor:pointer;outline:none;width:100%;font-weight:600}
+select:focus{border-color:var(--blue)}
+.sel-row{margin-bottom:13px}
+.sel-row label{font-size:14px;color:var(--g2);font-weight:600;display:block;margin-bottom:5px}
+
+/* ═══ BTN ═══ */
+.btn{display:block;width:100%;padding:10px;border:none;border-radius:7px;font-size:14px;font-weight:700;cursor:pointer;transition:.2s;margin-top:8px}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:var(--blue2)}
+.btn-ghost{background:var(--g6);color:var(--g2);border:1px solid var(--g5)}.btn-ghost:hover{background:var(--g5)}
+/* ═══ EPS SUB-TABS ═══ */
+.eps-wrap{background:#07090e;border-radius:10px;overflow:hidden;margin-top:4px;}
+.eps-tabs{display:flex;background:#000;border-bottom:2px solid #1e3a55;overflow-x:auto;scrollbar-width:none;}
+.eps-tabs::-webkit-scrollbar{display:none;}
+.eps-tab{padding:11px 14px;cursor:pointer;color:#8ab8d8;border-bottom:3px solid transparent;
+  white-space:nowrap;font-size:14px;font-weight:700;flex-shrink:0;transition:color .2s;}
+.eps-tab.active{color:#00ddff;border-bottom-color:#00ddff;}
+.eps-panel{display:none;padding-bottom:24px;}
+.eps-panel.active{display:block;}
+user-select: none
+</style>
+</head>
+<body>
+<script>
+(function(){const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';document.head.appendChild(s);})();
+</script>
+
+<!-- Student Login -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <h2>🎓 学生身份验证</h2>
+    <div class="desc">欢迎使用循环球式转向器设计计算工具！<br>请输入您的学号和姓名开始设计，完成后可生成评分报告。</div>
+    <div class="lf">
+      <label>学号（10位数字）</label>
+      <input type="text" id="stuId" placeholder="请输入10位数字学号" maxlength="10">
+      <div class="hint">示例：2024012345</div>
+      <div class="err" id="stuIdErr">请输入10位数字学号</div>
+    </div>
+    <div class="lf">
+      <label>姓名</label>
+      <input type="text" id="stuName" placeholder="请输入您的姓名">
+      <div class="err" id="stuNameErr">请输入姓名（至少2个字符）</div>
+    </div>
+    <button class="login-btn" onclick="doLogin()">开始设计</button>
+  </div>
+</div>
+
+<!-- Teacher Login -->
+<div class="login-overlay" id="teacherLoginOverlay" style="display:none">
+  <div class="login-box">
+    <h2>🔐 教师管理系统</h2>
+    <div class="desc">请输入教师密码以访问统计管理功能</div>
+    <div class="lf">
+      <label>教师密码</label>
+      <input type="password" id="teacherPwd" placeholder="请输入密码">
+      <div class="err" id="pwdErr">密码错误，请重试</div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="login-btn" onclick="doTeacherLogin()">登录</button>
+      <button class="login-btn" style="background:#888" onclick="closeTeacherLogin()">取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- HEADER -->
+<div class="hdr">
+  <h1>⚙️ 循环球式转向器设计计算工具（课程设计版本）</h1>
+  <p>《汽车设计》第6版（闵海涛 王建华）第八章 转向系设计 · 广西大学 · 车辆工程专业 · 《汽车设计》课程教学团队</p>
+  <span class="tag">离线版</span>
+  <span class="tag">8步完整流程</span>
+  <span class="tag">EPS仿真内嵌</span>
+  <span class="tag">方框输入</span>
+  <span class="tag">自动强度校核</span>
+  <span class="tag">渐开线花键计算</span>
+  <span class="tag">智能评分</span>
+  <div id="studentBadgeHdr" style="display:none;margin-top:8px;background:rgba(255,255,255,.2);padding:6px 14px;border-radius:6px;font-size:13px;">
+    <span style="opacity:.8">当前学生：</span><b id="hdrStuName"></b>（<span id="hdrStuId"></span>）
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px">
+    <div class="teacher-btn-hdr" onclick="openTeacherLogin()">👨‍🏫 教师管理</div>
+  </div>
+</div>
+
+<!-- STEP NAV -->
+<div class="step-nav">
+  <div class="step-btn active" onclick="goStep(0)"><span class="sn">①</span>转向系参数</div>
+  <div class="step-btn" onclick="goStep(1)"><span class="sn">②</span>转向器主要参数</div>
+  <div class="step-btn" onclick="goStep(2)"><span class="sn">③</span>传动比&效率</div>
+  <div class="step-btn" onclick="goStep(3)"><span class="sn">④</span>螺杆设计</div>
+  <div class="step-btn" onclick="goStep(4)"><span class="sn">⑤</span>齿扇&花键校核</div>
+  <div class="step-btn" onclick="goStep(5)"><span class="sn">⑥</span>助力减速机构</div>
+  <div class="step-btn" onclick="goStep(6)"><span class="sn">⑦</span>EPS仿真</div>
+  <div class="step-btn" onclick="goStep(7)"><span class="sn">⑧</span>汇总&图示</div>
+  <div class="step-btn" onclick="goStep(8)"><span class="sn">🏆</span>智能评分</div>
+  <div class="step-btn" onclick="goStep(9)"><span class="sn">📝</span>说明书评阅</div>
+</div>
+
+<!-- ══════════════ STEP 0: 转向系参数 ══════════════ -->
+<div class="step-content active" id="step0">
+<div class="cols">
+  <div class="card">
+    <div class="card-h"><span class="icon-n">①</span>整车 & 转向系设计参数</div>
+
+    <div class="grp">▍ 整车基本参数</div>
+    <div class="pr">
+      <div class="pl"><span class="pname">汽车满载总质量 m<sub>a</sub></span>
+        <span class="pval"><span id="v_ma">4500</span><span class="punit">kg</span></span></div>
+      <input type="number" id="s_ma" step="50" value="4500" oninput="sp('ma',this.value)">
+      <div class="pd">整备质量+额定载荷；轿车 1000~2500kg，货车 3000~20000kg</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">满载前轴负荷率 α<sub>f</sub></span>
+        <span class="pval"><span id="v_af">0.350</span></span></div>
+      <input type="number" id="s_af" step="0.005" value="0.35" oninput="sp('af',this.value)">
+      <div class="pd">G₁ = m<sub>a</sub>×g×α<sub>f</sub>；货车前轴负荷率约 0.30~0.40</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">轮胎充气压力 p</span>
+        <span class="pval"><span id="v_p_tire">0.400</span><span class="punit">MPa</span></span></div>
+      <input type="number" id="s_p_tire" step="0.005" value="0.40" oninput="sp('p_tire',this.value)">
+      <div class="pd">轿车约 0.20~0.30 MPa；货车约 0.35~0.55 MPa</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">轮胎与路面滑动摩擦因数 f</span>
+        <span class="pval"><span id="v_f_mu">0.70</span></span></div>
+      <input type="number" id="s_f_mu" step="0.05" value="0.7" oninput="sp('f_mu',this.value)">
+      <div class="pd">一般取 0.7；沥青路面取 0.7~0.8；参与原地转向阻力矩计算</div>
+    </div>
+
+    <div class="grp">▍ 转向系参数</div>
+    <div class="pr">
+      <div class="pl"><span class="pname">转向盘直径 D<sub>sw</sub></span>
+        <span class="pval"><span id="v_Dsw">500</span><span class="punit">mm</span></span></div>
+      <input type="number" id="s_Dsw" step="10" value="500" oninput="sp('Dsw',this.value)">
+      <div class="pd">货车 450~550 mm；轿车 350~450 mm（JB4505标准）</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">转向器角传动比 i<sub>w</sub></span>
+        <span class="pval"><span id="v_iw_req">20.0</span></span></div>
+      <input type="number" id="s_iw_req" step="0.5" value="20.0" oninput="sp('iw_req',this.value)">
+      <div class="pd">乘用车 14~20；商用车 23~32（《汽车设计》表8-2）；后续由齿扇参数精确计算</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">转向器正效率 η<sub>p</sub></span>
+        <span class="pval"><span id="v_eta_p">—</span></span></div>
+      <input type="number" id="s_eta_p" readonly style="background:#f0f4f8;color:var(--g3);cursor:not-allowed;border-color:var(--g5);" placeholder="由第③步计算自动填入">
+      <div class="pd">🔗 自动引用第③部分（传动比&amp;效率）计算结果：η⁺ = tanγ / tan(γ+ρ)；无需手动输入</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">节叉臂长比 L₂/L₁</span>
+        <span class="pval"><span id="v_L2L1">1.00</span></span></div>
+      <input type="number" id="s_L2L1" step="0.01" value="1.0" oninput="sp('L2L1',this.value)">
+      <div class="pd">转向节臂长/摇臂长比值，现代汽车约 0.85~1.1，近似取 1</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">转向盘最大手力 F<sub>h</sub></span>
+        <span class="pval"><span id="v_Fhand">200</span><span class="punit">N</span></span></div>
+      <input type="number" id="s_Fhand" step="5" value="200" oninput="sp('Fhand',this.value)">
+      <div class="pd">式(8-26)推算：无助力货车 ≤250 N；无助力轿车 ≤100 N；此处为设计限值，工具将计算实际手力并与之比较</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">转向摇臂长度 L</span>
+        <span class="pval"><span id="v_Larm">135</span><span class="punit">mm</span></span></div>
+      <input type="number" id="s_Larm" step="5" value="135" oninput="sp('Larm',this.value)">
+      <div class="pd">摇臂大端花键中心至小端球头销中心距离；一般 100~200mm</div>
+    </div>
+
+
+    <div class="grp">▍ 转向几何参数</div>
+    <div class="pr">
+      <div class="pl"><span class="pname">主销偏移距 a</span>
+        <span class="pval"><span id="v_a_off">50</span><span class="punit">mm</span></span></div>
+      <input type="number" id="s_a_off" step="1" value="50" oninput="sp('a_off',this.value)">
+      <div class="pd">轿车约 20~40mm；货车约 40~60mm；用于力传动比计算</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">汽车轴距 L</span>
+        <span class="pval"><span id="v_L_wb">3800</span><span class="punit">mm</span></span></div>
+      <input type="number" id="s_L_wb" step="50" value="3800" oninput="sp('L_wb',this.value)">
+      <div class="pd">前轴到后轴中心距；轻型货车约 3000~4500mm</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">前轮距 B</span>
+        <span class="pval"><span id="v_B_track">1800</span><span class="punit">mm</span></span></div>
+      <input type="number" id="s_B_track" step="50" value="1800" oninput="sp('B_track',this.value)">
+      <div class="pd">左右前轮中心面之间距离；一般 1400~2000mm</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">最小转弯半径 R<sub>min</sub></span>
+        <span class="pval"><span id="v_Rmin">9500</span><span class="punit">mm</span></span></div>
+      <input type="number" id="s_Rmin" step="100" value="9500" oninput="sp('Rmin',this.value)">
+      <div class="pd">建议取轴距的 2.0~2.5 倍；轻型货车约 8000~12000mm</div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-h">📋 原地转向阻力矩计算</div>
+      <div class="alert info">📐 原地转向阻力矩（式8-25，《汽车设计》第6版）：<b>M<sub>R</sub> = (f/3)·√(G₁³/p)</b><br>式中，G₁为前轴负荷(N)，f为轮胎与路面滑动摩擦因数（一般取0.7），p为轮胎气压(MPa)。</div>
+      <div id="out_step0"></div>
+    </div>
+    <div class="card">
+      <div class="card-h">📊 转向系力传动比 & 性能指标</div>
+      <div id="perf_step0"></div>
+    </div>
+    <div class="card">
+      <div class="card-h">🚗 转向系统角传动比分析</div>
+      <div class="alert info">转向系角传动比：<b>i<sub>wo</sub> ≈ i<sub>w</sub> = dφ/dβ</b><br>力传动比：<b>i<sub>p</sub> = i<sub>wo</sub>·D<sub>sw</sub> / (2a)</b></div>
+      <div id="angle_analysis"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><span class="icon-n">θ</span>转向轮偏转角计算</div>
+      <div class="info-row" id="info_K">两主销轴线延长线到地面交点间距：K = B − 2a = <b id="v_K_display">—</b> mm</div>
+      <div style="overflow-x:auto">
+        <table class="tbl"><thead><tr><th>参数</th><th>公式</th><th>数值</th><th>单位</th></tr></thead>
+        <tbody id="tb_angle_circ"></tbody></table>
+      </div>
+      <div style="margin-top:14px" id="vd_angle_circ"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════ STEP 1: 转向器主要参数 ══════════════ -->
+<div class="step-content" id="step1">
+<div class="cols">
+  <div class="card">
+    <div class="card-h"><span class="icon-n">②</span>转向器主要参数</div>
+    <div class="alert info">根据前轴负荷 G₁ 自动推荐参数，初值由表8-3自动填充，可手动修改任意值。<b>变厚齿扇参数</b>已移至第⑤步"齿扇&amp;花键校核"统一输入。</div>
+
+
+    <div class="pr">
+      <div class="pl"><span class="pname">钢球中心距 D</span>
+        <span class="pval"><span id="v_D">32</span><span class="punit">mm</span></span></div>
+      <input type="number" id="s_D" step="0.5" value="32" oninput="sp('D',this.value)">
+      <div class="pd">基本尺寸，随模数增大而增大；参见表4-1</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">螺杆外径 D₁</span>
+        <span class="pval"><span id="v_D1">29</span><span class="punit">mm</span></span></div>
+      <input type="number" id="s_D1" step="0.5" value="29" oninput="sp('D1',this.value)">
+      <div class="pd">通常 20~38 mm；D₂ − D₁ = (5%~10%)D</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">钢球直径 d</span>
+        <span class="pval"><span id="v_d">7.144</span><span class="punit">mm</span></span></div>
+      <input type="number" id="s_d" step="0.001" value="7.144" oninput="sp('d',this.value)">
+      <div class="pd">标准尺寸：5.556 / 6.350 / 7.144 / 7.938 / 8 / 9.525 mm</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">螺距 P</span>
+        <span class="pval"><span id="v_Pp">10.0</span><span class="punit">mm</span></span></div>
+      <input type="number" id="s_Pp" step="0.001" value="10.0" oninput="sp('Pp',this.value)">
+      <div class="pd">一般 7~18 mm；需满足 b = P − d > 2.5 mm</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">每路工作钢球圈数 W</span>
+        <span class="pval"><span id="v_W">2.5</span><span class="punit">圈</span></span></div>
+      <input type="number" id="s_W" step="0.5" value="2.5" oninput="sp('W',this.value)">
+      <div class="pd">通常 1.5 或 2.5 圈；多圈提高承载但降低刚度</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">参与工作钢球比例 η<sub>n</sub></span>
+        <span class="pval"><span id="v_neff_ratio">0.83</span></span></div>
+      <input type="number" id="s_neff_ratio" step="0.01" min="0.10" max="1.00" value="0.83" oninput="sp('neff_ratio',this.value)">
+      <div class="pd">自动建议值：η<sub>n</sub> = W / (W + 0.5)（回珠管约占 0.5 圈）；W=1.5→75%，W=2.5→83%，W=3→86%。可手动覆盖；若计入载荷不均匀折减可适当降低。</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">环流行数（循环路数）N<sub>c</sub></span>
+        <span class="pval"><span id="v_Ncirc">2</span><span class="punit">路</span></span></div>
+      <input type="number" id="s_Ncirc" step="1" value="2" oninput="sp('Ncirc',this.value)">
+      <div class="pd">一般取 2 路；增加路数可提高承载能力</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">接触角 β<sub>c</sub></span>
+        <span class="pval"><span id="v_beta_c">45</span><span class="punit">°</span></span></div>
+      <input type="number" id="s_beta_c" step="5" value="45" oninput="sp('beta_c',this.value)">
+      <div class="pd">钢球与螺杆滚道接触角；一般取 45°使轴向/径向力均匀分配</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">螺线摩擦角 ρ</span>
+        <span class="pval"><span id="v_rho_deg">5.71</span><span class="punit">°</span></span></div>
+      <input type="number" id="s_rho_deg" step="0.01" value="5.71" oninput="sp('rho_deg',this.value)">
+      <div class="pd">ρ = arctan(μ)；滚珠螺杆摩擦角通常 3°~8°；影响正逆效率与自动回正能力</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">导程角 γ</span>
+        <span class="pval"><span id="v_gamma_disp">—</span><span class="punit">°</span></span></div>
+      <input type="number" id="s_gamma_disp" readonly style="background:#f0f4f8;color:var(--g3);cursor:not-allowed;border-color:var(--g5);" placeholder="由螺距P与钢球中心距D自动计算">
+      <div class="pd">🔗 自动计算：γ = arctan(P / (π·D))；由螺距 P 和钢球中心距 D 决定，推荐范围 8°~10°</div>
+    </div>
+
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-h">📊 推荐参数查表（表4-1 循环球式转向器主要参数）</div>
+      <div id="table_lookup"></div>
+    </div>
+    <div class="card">
+      <div class="card-h">📋 模数选择依据（表6-1 齿扇齿模数与前轴负荷）</div>
+      <div id="module_table"></div>
+    </div>
+    <div class="card">
+      <div class="card-h">✅ 基本参数合理性检查</div>
+      <div id="param_check"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════ STEP 2: 传动比 & 效率 ══════════════ -->
+<div class="step-content" id="step2">
+<div class="cols">
+  <div class="card">
+    <div class="card-h"><span class="icon-n">③</span>传动比与效率参数</div>
+    <div class="alert info">循环球式转向器角传动比：<b>i<sub>w</sub> = 2πr/P</b>，其中 r = m·z'/2 为齿扇节圆半径，P 为螺距。<br>正效率：<b>η⁺ = tanγ / tan(γ+ρ)</b>；逆效率：<b>η⁻ = tan(γ−ρ) / tanγ</b></div>
+    <div class="grp">▍ 传动比计算推导</div>
+    <div id="iw_calc"></div>
+    <div class="grp" style="margin-top:18px">▍ 效率计算（螺线导程角影响）</div>
+    <div id="eff_calc"></div>
+  </div>
+  <div>
+    <div class="card">
+      <div class="card-h">📐 传动比合理性分析</div>
+      <div id="iw_analysis"></div>
+    </div>
+    <div class="card">
+      <div class="card-h">🔢 力传动比与操纵轻便性验证</div>
+      <div id="force_ratio"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════ STEP 3: 螺杆设计 ══════════════ -->
+<div class="step-content" id="step3">
+<div class="cols">
+  <div class="card">
+    <div class="card-h"><span class="icon-n">④</span>螺杆传动副设计参数</div>
+    <div class="alert info">钢球数量：<b>n = πDWcosγ/d</b>（每路）；螺母内径：D₂ = D₁ + (5%~10%)D；滚道半径：R₂ = (0.51~0.53)d。</div>
+    <div id="screw_params"></div>
+  </div>
+  <div>
+    <div class="card">
+      <div class="card-h">📏 螺母移动距离 & 螺杆有效长度</div>
+      <div id="screw_length"></div>
+    </div>
+    <div class="card">
+      <div class="card-h">🔩 滚道截面参数 & 受力分析</div>
+      <div id="raceway_params"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════ STEP 4: 齿扇校核 & 花键 ══════════════ -->
+<div class="step-content" id="step4">
+<div class="cols">
+  <!-- 左侧：花键 & 摇臂轴输入参数 -->
+  <div class="card">
+    <div class="card-h"><span class="icon-n">⑤</span>花键 & 摇臂轴设计参数</div>
+    <div class="alert info">变厚齿扇参数在此直接输入；修改后将立即重新计算右侧所有校核结果。模数 m 由前轴负荷自动推荐，其余参数可根据设计需要手动调整。</div>
+
+    <div class="grp">▍ 变厚齿扇参数（直接输入）</div>
+    <div class="pr">
+      <div class="pl"><span class="pname">模数 m</span>
+        <span class="pval"><span id="v_m_sec">5.0</span><span class="punit">mm</span></span></div>
+      <input type="number" id="s4_m" step="0.5" value="5.0" oninput="sp('m_sec',this.value)">
+      <div class="pd">齿扇法向模数；常用：3 / 3.5 / 4 / 4.5 / 5 / 6 / 6.5 mm</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">整圆齿数 z'</span>
+        <span class="pval"><span id="v_zp_s4">13</span></span></div>
+      <input type="number" id="s4_zp" step="1" value="13" oninput="sp4('zp',this.value)">
+      <div class="pd">一般 12~15 齿；决定齿扇节圆半径与角传动比</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">实际齿扇齿数 z</span>
+        <span class="pval"><span id="v_z_s4">5</span></span></div>
+      <input type="number" id="s4_z" step="1" value="5" oninput="sp4('z',this.value)">
+      <div class="pd">实际使用齿数，通常取 3 或 5 齿</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">法向压力角 α</span>
+        <span class="pval"><span id="v_alpha_s4">27.5</span><span class="punit">°</span></span></div>
+      <input type="number" id="s4_alpha" step="2.5" value="27.5" oninput="sp4('alpha',this.value)">
+      <div class="pd">一般在20度到30度之间</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">齿顶高系数 X₁</span>
+        <span class="pval"><span id="v_X1">0.80</span></span></div>
+      <input type="number" id="s4_X1" step="0.05" value="0.80" oninput="sp('X1',this.value)">
+      <div class="pd">通常取 0.8 或 1.0；径向间隙系数 c 取 0.20</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">齿扇宽度 b<sub>sec</sub></span>
+        <span class="pval"><span id="v_bsec">26</span><span class="punit">mm</span></span></div>
+      <input type="number" id="s4_bsec" step="1" value="26" oninput="sp('bsec',this.value)">
+      <div class="pd">通常 22~38 mm（参考表4-1）</div>
+    </div>
+
+    <div class="grp">▍ 渐开线花键（摇臂轴）</div>
+    <div class="alert info" style="font-size:13px">摇臂轴渐开线花键：模数 m<sub>s</sub>、齿数 Z<sub>s</sub>、压力角 45°；传递转向器输出力矩。</div>
+    <div class="pr">
+      <div class="pl"><span class="pname">花键模数 m<sub>s</sub></span>
+        <span class="pval"><span id="v_ms">0.80</span><span class="punit">mm</span></span></div>
+      <input type="number" id="s_ms" step="0.1" value="0.80" oninput="sp('ms',this.value)">
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">花键齿数 Z<sub>s</sub></span>
+        <span class="pval"><span id="v_Zs">36</span></span></div>
+      <input type="number" id="s_Zs" step="1" value="36" oninput="sp('Zs',this.value)">
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">花键工作长度 L<sub>s</sub></span>
+        <span class="pval"><span id="v_Ls">25</span><span class="punit">mm</span></span></div>
+      <input type="number" id="s_Ls" step="1" value="25" oninput="sp('Ls',this.value)">
+    </div>
+
+    <div class="grp" style="margin-top:14px">▍ 转向摇臂轴直径（式8-33）</div>
+    <div class="alert info" style="font-size:13px">式(8-33)：d = ∛[K·M<sub>R</sub> / (0.2·τ₀)]，M<sub>R</sub> 为原地转向阻力矩，K 为安全系数，τ₀ 为扭转强度极限。</div>
+    <div class="pr">
+      <div class="pl"><span class="pname">安全系数 K</span>
+        <span class="pval c2"><span id="v_K_arm">3.00</span></span></div>
+      <input type="number" id="s_K_arm" step="0.5" value="3.0" oninput="sp('K_arm',this.value)">
+      <div class="pd">根据使用条件取 2.5~3.5；一般取 3.0</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">轴材料扭转强度极限 τ₀</span>
+        <span class="pval c2"><span id="v_tau0_arm">700</span><span class="punit">MPa</span></span></div>
+      <input type="number" id="s_tau0_arm" step="10" value="700" oninput="sp('tau0_arm',this.value)">
+      <div class="pd">20CrMnTi渗碳淬火 τ₀ ≈ 700 MPa；表面硬度58~63HRC</div>
+    </div>
+  </div>
+
+  <!-- 右侧：全部校核结果 -->
+  <div>
+    <div class="card">
+      <div class="card-h">⚙ 变厚齿扇几何参数</div>
+      <div id="sector_geom"></div>
+    </div>
+    <div class="card">
+      <div class="card-h">⚡ 齿扇弯曲强度校核（式8-32）</div>
+      <div id="sector_stress"></div>
+    </div>
+    <div class="card">
+      <div class="card-h">🔐 螺杆轴向力 & 钢球接触应力校核（式8-30~8-31）</div>
+      <div id="ball_force"></div>
+    </div>
+    <div class="card">
+      <div class="card-h">🔑 渐开线花键几何参数 & 弯曲校核</div>
+      <div id="spline_calc"></div>
+    </div>
+    <div class="card">
+      <div class="card-h">📏 转向摇臂轴直径（式8-33）</div>
+      <div id="arm_shaft_calc"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════ STEP 5: 助力减速机构 ══════════════ -->
+<div class="step-content" id="step5">
+<div class="cols">
+  <div class="card">
+    <div class="card-h"><span class="icon-n">⑥</span>EPS助力减速机构参数</div>
+    <div class="alert info">转向柱助力式EPS：电机→蜗轮蜗杆减速→转向管柱→循环球转向器。蜗轮蜗杆具有自锁性好、传动比大（15~30）等优点。</div>
+
+    <div class="grp">▍ 助力电机参数</div>
+    <div class="pr">
+      <div class="pl"><span class="pname">有助力时方向盘最大切向力 F<sub>hand</sub></span>
+        <span class="pval"><span id="v_F_hand">50</span><span class="punit">N</span></span></div>
+      <input type="number" id="s_F_hand" step="1" value="50" oninput="sp('F_hand',this.value)">
+      <div class="pd">有助力时驾驶员切向力；轻型商用车一般 ≤100N，参考整车设计要求</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">蜗轮蜗杆传动比 i<sub>worm</sub></span>
+        <span class="pval"><span id="v_i_worm">18</span></span></div>
+      <input type="number" id="s_i_worm" step="1" value="18" oninput="sp('i_worm',this.value)">
+      <div class="pd">一般取15~30；本设计取18（z₁=2，z₂=36）</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">蜗轮蜗杆传动效率 η<sub>worm</sub></span>
+        <span class="pval"><span id="v_eta_worm">0.75</span></span></div>
+      <input type="number" id="s_eta_worm" step="0.01" value="0.75" oninput="sp('eta_worm',this.value)">
+      <div class="pd">蜗轮蜗杆效率一般0.7~0.85；有自锁要求时取偏低值</div>
+    </div>
+
+    <div class="grp">▍ 蜗杆几何参数</div>
+    <div class="pr">
+      <div class="pl"><span class="pname">蜗杆头数 z<sub>1w</sub></span>
+        <span class="pval"><span id="v_z1w">2</span></span></div>
+      <input type="number" id="s_z1w" step="1" value="2" oninput="sp('z1w',this.value)">
+      <div class="pd">常取1、2、4；头数越多效率越高，但自锁性越差</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">蜗杆轴向模数 m<sub>w</sub></span>
+        <span class="pval"><span id="v_mw">2.5</span><span class="punit">mm</span></span></div>
+      <input type="number" id="s_mw" step="0.5" value="2.5" oninput="sp('mw',this.value)">
+      <div class="pd">标准系列：1、1.25、1.5、2、2.5、3、4…</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">蜗杆分度圆直径 d<sub>1w</sub></span>
+        <span class="pval"><span id="v_d1w">31.5</span><span class="punit">mm</span></span></div>
+      <input type="number" id="s_d1w" step="0.5" value="31.5" oninput="sp('d1w',this.value)">
+      <div class="pd">由标准表查取；m=2.5时推荐d₁=22.4或31.5mm</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">齿顶高系数 h<sub>a</sub>* (蜗杆)</span>
+        <span class="pval"><span id="v_haw">1.00</span></span></div>
+      <input type="number" id="s_haw" step="0.05" value="1.0" oninput="sp('haw',this.value)">
+      <div class="pd">标准蜗杆取1.0；顶隙系数c*=0.25</div>
+    </div>
+
+    <div class="grp">▍ 蜗轮材料许用应力</div>
+    <div class="pr">
+      <div class="pl"><span class="pname">接触疲劳许用应力 [σ<sub>H</sub>]<sub>w</sub></span>
+        <span class="pval c2"><span id="v_sigH_w">200</span><span class="punit">MPa</span></span></div>
+      <input type="number" id="s_sigH_w" step="5" value="200" oninput="sp('sigH_w',this.value)">
+      <div class="pd">金属模铸造青铜蜗轮：200MPa；砂模铸造：168MPa</div>
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">弯曲疲劳许用应力 [σ<sub>F</sub>]<sub>w</sub></span>
+        <span class="pval c2"><span id="v_sigF_w">56</span><span class="punit">MPa</span></span></div>
+      <input type="number" id="s_sigF_w" step="2" value="56" oninput="sp('sigF_w',this.value)">
+      <div class="pd">金属模铸造青铜（双侧工作）：56MPa</div>
+    </div>
+
+    <div class="grp">▍ 蜗轮载荷系数</div>
+    <div class="pr">
+      <div class="pl"><span class="pname">使用系数 K<sub>A_w</sub></span>
+        <span class="pval"><span id="v_KAw">1.00</span></span></div>
+      <input type="number" id="s_KAw" step="0.1" value="1.0" oninput="sp('KAw',this.value)">
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">动载系数 K<sub>v_w</sub></span>
+        <span class="pval"><span id="v_Kvw">1.10</span></span></div>
+      <input type="number" id="s_Kvw" step="0.05" value="1.1" oninput="sp('Kvw',this.value)">
+    </div>
+    <div class="pr">
+      <div class="pl"><span class="pname">齿向载荷分布系数 K<sub>β_w</sub></span>
+        <span class="pval"><span id="v_Kbw">1.10</span></span></div>
+      <input type="number" id="s_Kbw" step="0.05" value="1.1" oninput="sp('Kbw',this.value)">
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-h"><span class="icon-n">M</span>电机最小助力转矩</div>
+      <div id="motor_check"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><span class="icon-n">⚙</span>蜗轮蜗杆几何参数</div>
+      <div id="worm_geom"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><span class="icon-n">✓</span>蜗轮强度校核</div>
+      <div id="worm_check"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════ STEP 6: EPS仿真 ══════════════ -->
+<div class="step-content" id="step6">
+  <div class="card" style="margin-bottom:15px">
+    <div class="card-h"><span class="icon-n">⑦</span>EPS 电动助力转向仿真（内嵌）</div>
+    <div class="alert info">本模块内嵌 EPS 仿真工具，角传动比 iw、电机传动比 im、整车质量 m 自动引用上方设计结果。先确认系统参数，再切换子标签页运行仿真。</div>
+  </div>
+  <div class="eps-wrap">
+    <div class="eps-tabs">
+      <div class="eps-tab active" onclick="epsTab(0)">⚙ 系统参数</div>
+      <div class="eps-tab" onclick="epsTab(1)">📈 助力曲线</div>
+      <div class="eps-tab" onclick="epsTab(2)">🚗 横摆角速度</div>
+      <div class="eps-tab" onclick="epsTab(3)">🎛 PID调参</div>
+      <div class="eps-tab" onclick="epsTab(4)">↩ 回正控制</div>
+      <div class="eps-tab" onclick="epsTab(5)">📊 差异对比</div>
+    </div>
+    <!-- EPS Panel 0: System Params -->
+    <div class="eps-panel active" id="eps-p0" style="padding:16px">
+      <div class="card">
+        <div class="card-h"><span class="icon-n">⚙</span>转向系统参数（可自定义）</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div><div class="grp">▍ 方向盘与管柱</div>
+            <div class="pr"><div class="pl"><span class="pname">Js 转向盘惯量 (kg·m²)</span></div><input type="number" id="e_Js" value="0.01" step="0.001"></div>
+            <div class="pr"><div class="pl"><span class="pname">Bs 管柱阻尼 (N·m·s/rad)</span></div><input type="number" id="e_Bs" value="0.01" step="0.001"></div>
+            <div class="pr"><div class="pl"><span class="pname">Ks 转向轴刚度 (N·m/rad)</span></div><input type="number" id="e_Ks" value="180" step="1"></div>
+            <div class="pr"><div class="pl"><span class="pname">iw 转向器传动比 <span style="font-size:11px;color:#1a7a3c;font-weight:700">← ①整车参数</span></span></div><input type="number" id="e_iw" value="20" step="0.1" readonly style="background:#eef5ff;color:#1a5fa8;font-weight:700;cursor:default;border-color:#a0c8f0;"><div style="font-size:11px;color:#1a7a3c;margin-top:3px">🔗 自动引用主工具 iw_req 设计值</div></div>
+            <div class="grp">▍ 齿扇侧</div>
+            <div class="pr"><div class="pl"><span class="pname">Jc 折算惯量 (kg·m²)</span></div><input type="number" id="e_Jc" value="0.08" step="0.001"></div>
+            <div class="pr"><div class="pl"><span class="pname">Bc 输出阻尼 (N·m·s/rad)</span></div><input type="number" id="e_Bc" value="0.35" step="0.01"></div>
+            <div class="pr"><div class="pl"><span class="pname">Kc 等效刚度 (N·m/rad)</span></div><input type="number" id="e_Kc" value="2.3" step="0.1"></div>
+            <div class="pr"><div class="pl"><span class="pname">rp 等效线传动半径 (m)</span></div><input type="number" id="e_rp" value="0.016" step="0.001"><div style="font-size:11px;color:#8fa3b5;margin-top:3px">循环球系统等效值，手动输入（参考螺距/2π）</div></div>
+          </div>
+          <div><div class="grp">▍ 助力电机</div>
+            <div class="pr"><div class="pl"><span class="pname">im 电机传动比 <span style="font-size:11px;color:#1a7a3c;font-weight:700">← ⑥助力减速机构</span></span></div><input type="number" id="e_im" value="18" step="0.1" readonly style="background:#eef5ff;color:#1a5fa8;font-weight:700;cursor:default;border-color:#a0c8f0;"><div style="font-size:11px;color:#1a7a3c;margin-top:3px">🔗 自动引用蜗轮蜗杆传动比</div></div>
+            <div class="pr"><div class="pl"><span class="pname">Jm 电机惯量 (kg·m²)</span></div><input type="number" id="e_Jm" value="0.0001" step="0.00001"></div>
+            <div class="pr"><div class="pl"><span class="pname">Kt 转矩常数 (N·m/A)</span></div><input type="number" id="e_Kt" value="0.046" step="0.001"></div>
+            <div class="pr"><div class="pl"><span class="pname">Bm 电机阻尼</span></div><input type="number" id="e_Bm" value="0.0007" step="0.0001"></div>
+            <div class="pr"><div class="pl"><span class="pname">Kb 反电动势常数</span></div><input type="number" id="e_Kb" value="0.01" step="0.001"></div>
+            <div class="pr"><div class="pl"><span class="pname">R 电机电阻 (Ω)</span></div><input type="number" id="e_R" value="0.1" step="0.01"></div>
+            <div class="pr"><div class="pl"><span class="pname">L 电机电感 (H)</span></div><input type="number" id="e_L" value="0.001" step="0.0001"></div>
+            <div class="grp">▍ 整车</div>
+            <div class="pr"><div class="pl"><span class="pname">m 整车质量 (kg) <span style="font-size:11px;color:#1a7a3c;font-weight:700">← ①整车参数</span></span></div><input type="number" id="e_m" value="4500" step="10" readonly style="background:#eef5ff;color:#1a5fa8;font-weight:700;cursor:default;border-color:#a0c8f0;"><div style="font-size:11px;color:#1a7a3c;margin-top:3px">🔗 自动引用整车满载质量</div></div>
+            <div class="pr"><div class="pl"><span class="pname">Iz 绕Z轴转动惯量 (kg·m²)</span></div><input type="number" id="e_Iz" value="8000" step="100"></div>
+            <div class="pr"><div class="pl"><span class="pname">a 质心到前轴 (m)</span></div><input type="number" id="e_a" value="1.800" step="0.01"></div>
+            <div class="pr"><div class="pl"><span class="pname">b 质心到后轴 (m)</span></div><input type="number" id="e_b" value="2.200" step="0.01"></div>
+            <div class="pr"><div class="pl"><span class="pname">k1 前轮侧偏刚度 (N/rad)</span></div><input type="number" id="e_k1" value="-55000" step="1000"></div>
+            <div class="pr"><div class="pl"><span class="pname">k2 后轮侧偏刚度 (N/rad)</span></div><input type="number" id="e_k2" value="-60000" step="1000"></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="epsApply()" style="margin-top:12px">✔ 应用参数 — 更新所有仿真</button>
+        <div class="alert info" style="margin-top:10px"><span style="color:#1a7a3c;font-weight:700">🔗 蓝色字段已自动引用主工具计算值</span>（转向器传动比 iw、电机减速比 im、整车质量 m），切换到本步骤时自动同步，其余参数可手动调整后点击"应用参数"。</div>
+      </div>
+    </div>
+    <!-- EPS Panel 1: Assist Curves -->
+    <div class="eps-panel" id="eps-p1" style="padding:16px">
+      <div class="card">
+        <div class="card-h"><span class="icon-n">📈</span>助力特性曲线参数</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="pr"><div class="pl"><span class="pname">转矩最小值 (N·m)</span></div><input type="number" id="e_t1_tmin" value="0" step="0.5"></div>
+          <div class="pr"><div class="pl"><span class="pname">转矩最大值 (N·m)</span></div><input type="number" id="e_t1_tmax" value="8" step="0.5"></div>
+        </div>
+        <div class="pr"><div class="pl"><span class="pname">对比车速列表 km/h（逗号分隔）</span></div>
+          <input type="text" id="e_t1_speeds" value="10, 35, 60, 100"></div>
+        <button class="btn btn-primary" onclick="epsRunTab1()">▶ 绘制助力特性曲线</button>
+      </div>
+      <div class="card" style="margin-top:0"><div class="card-h"><span class="icon-n">图</span>目标助力电流 vs 方向盘转矩
+        <button class="btn-ghost" style="margin-left:auto;width:auto;padding:6px 14px;font-size:12px" onclick="epsDlChart('ecanvas1a','助力特性曲线')">📥 下载</button>
+      </div><canvas id="ecanvas1a"></canvas></div>
+      <div class="card" style="margin-top:0"><div class="card-h"><span class="icon-n">🌡</span>助力电流热力图
+        <button class="btn-ghost" style="margin-left:auto;width:auto;padding:6px 14px;font-size:12px" onclick="epsDlHeatmap('ecanvas1b','助力电流热力图')">📥 下载</button>
+      </div><canvas id="ecanvas1b"></canvas></div>
+    </div>
+    <!-- EPS Panel 2: Yaw Rate -->
+    <div class="eps-panel" id="eps-p2" style="padding:16px">
+      <div class="card">
+        <div class="card-h"><span class="icon-n">🚗</span>横摆角速度仿真条件</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="pr"><div class="pl"><span class="pname">车速 v (km/h)</span></div><input type="number" id="e_t2_v" value="35" step="5"></div>
+          <div class="pr"><div class="pl"><span class="pname">驾驶员输入转矩 Td (N·m)</span></div><input type="number" id="e_t2_Td" value="3" step="0.5"></div>
+          <div class="pr"><div class="pl"><span class="pname">Kp</span></div><input type="number" id="e_t2_Kp" value="2" step="0.1"></div>
+          <div class="pr"><div class="pl"><span class="pname">Ki</span></div><input type="number" id="e_t2_Ki" value="1.5" step="0.1"></div>
+          <div class="pr"><div class="pl"><span class="pname">Kd</span></div><input type="number" id="e_t2_Kd" value="0" step="0.1"></div>
+          <div class="pr"><div class="pl"><span class="pname">仿真时长 T (s)</span></div><input type="number" id="e_t2_T" value="8" step="1" min="2" max="30"></div>
+        </div>
+        <button class="btn btn-primary" onclick="epsRunTab2()">▶ 运行仿真对比</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+        <div class="card" style="margin-bottom:0"><div class="pname">机械式稳定时间</div><div class="pval" id="er2_mt" style="font-size:20px">—</div></div>
+        <div class="card" style="margin-bottom:0"><div class="pname">PID-EPS稳定时间</div><div class="pval" id="er2_pt" style="font-size:20px">—</div></div>
+        <div class="card" style="margin-bottom:0"><div class="pname">机械式超调量</div><div class="pval" id="er2_mo" style="font-size:20px">—</div></div>
+        <div class="card" style="margin-bottom:0"><div class="pname">PID-EPS超调量</div><div class="pval" id="er2_po" style="font-size:20px">—</div></div>
+      </div>
+      <div class="card" style="margin-top:8px"><div class="card-h"><span class="icon-n">图</span>横摆角速度响应曲线
+        <button class="btn-ghost" style="margin-left:auto;width:auto;padding:6px 14px;font-size:12px" onclick="epsDlChart('ecanvas2a','横摆角速度响应曲线')">📥 下载</button>
+      </div><canvas id="ecanvas2a"></canvas></div>
+      <div class="card" style="margin-top:0"><div class="card-h"><span class="icon-n">图</span>电机助力电流
+        <button class="btn-ghost" style="margin-left:auto;width:auto;padding:6px 14px;font-size:12px" onclick="epsDlChart('ecanvas2b','电机助力电流')">📥 下载</button>
+      </div><canvas id="ecanvas2b"></canvas></div>
+    </div>
+    <!-- EPS Panel 3: PID Tuning -->
+    <div class="eps-panel" id="eps-p3" style="padding:16px">
+      <div class="card">
+        <div class="card-h"><span class="icon-n">🎛</span>PID调参分析条件</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="pr"><div class="pl"><span class="pname">车速 v (km/h)</span></div><input type="number" id="e_t3_v" value="35" step="5"></div>
+          <div class="pr"><div class="pl"><span class="pname">驾驶员转矩 Td (N·m)</span></div><input type="number" id="e_t3_Td" value="3" step="0.5"></div>
+          <div class="pr"><div class="pl"><span class="pname">仿真时长 T (s)</span></div><input type="number" id="e_t3_T" value="8" step="1"></div>
+        </div>
+        <div class="pr"><div class="pl"><span class="pname">Kp对比列表（逗号分隔）</span></div><input type="text" id="e_t3_kplist" value="0.1, 0.5, 1, 2, 5, 10"></div>
+        <div class="pr"><div class="pl"><span class="pname">Ki对比列表（Kp=2,Kd=0）</span></div><input type="text" id="e_t3_kilist" value="0, 0.5, 1, 1.5, 2, 3"></div>
+        <button class="btn btn-primary" onclick="epsRunTab3()">▶ 运行调参分析</button>
+      </div>
+      <div class="card" style="margin-top:0"><div class="card-h"><span class="icon-n">图</span>Kp 对横摆角速度的影响
+        <button class="btn-ghost" style="margin-left:auto;width:auto;padding:6px 14px;font-size:12px" onclick="epsDlChart('ecanvas3a','Kp调参')">📥 下载</button>
+      </div><canvas id="ecanvas3a"></canvas></div>
+      <div class="card" style="margin-top:0"><div class="card-h"><span class="icon-n">图</span>Ki 对横摆角速度的影响
+        <button class="btn-ghost" style="margin-left:auto;width:auto;padding:6px 14px;font-size:12px" onclick="epsDlChart('ecanvas3b','Ki调参')">📥 下载</button>
+      </div><canvas id="ecanvas3b"></canvas></div>
+    </div>
+    <!-- EPS Panel 4: Return Control -->
+    <div class="eps-panel" id="eps-p4" style="padding:16px">
+      <div class="card">
+        <div class="card-h"><span class="icon-n">↩</span>回正仿真条件</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="pr"><div class="pl"><span class="pname">车速 v (km/h)</span></div><input type="number" id="e_t4_v" value="30" step="5"></div>
+          <div class="pr"><div class="pl"><span class="pname">初始方向盘转角 (°)</span></div><input type="number" id="e_t4_th0" value="90" step="5"></div>
+          <div class="pr"><div class="pl"><span class="pname">仿真时长 T (s)</span></div><input type="number" id="e_t4_T" value="5" step="1"></div>
+          <div class="pr"><div class="pl"><span class="pname">Kp_r 比例增益</span></div><input type="number" id="e_t4_Kpr" value="5" step="0.5"></div>
+          <div class="pr"><div class="pl"><span class="pname">Kd_r 微分增益</span></div><input type="number" id="e_t4_Kdr" value="0.5" step="0.1"></div>
+        </div>
+        <div class="pr"><div class="pl"><span class="pname">Kp_r对比列表</span></div><input type="text" id="e_t4_kprlist" value="1, 3, 5, 10, 20"></div>
+        <button class="btn btn-primary" onclick="epsRunTab4()">▶ 运行回正仿真</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+        <div class="card" style="margin-bottom:0"><div class="pname">机械式回正时间</div><div class="pval" id="er4_mt" style="font-size:20px">—</div></div>
+        <div class="card" style="margin-bottom:0"><div class="pname">EPS回正时间</div><div class="pval" id="er4_et" style="font-size:20px">—</div></div>
+      </div>
+      <div class="card" style="margin-top:8px"><div class="card-h"><span class="icon-n">图</span>方向盘回正曲线
+        <button class="btn-ghost" style="margin-left:auto;width:auto;padding:6px 14px;font-size:12px" onclick="epsDlChart('ecanvas4a','回正控制曲线')">📥 下载</button>
+      </div><canvas id="ecanvas4a"></canvas></div>
+      <div class="card" style="margin-top:0"><div class="card-h"><span class="icon-n">图</span>不同Kp_r对回正的影响
+        <button class="btn-ghost" style="margin-left:auto;width:auto;padding:6px 14px;font-size:12px" onclick="epsDlChart('ecanvas4b','Kp_r参数影响')">📥 下载</button>
+      </div><canvas id="ecanvas4b"></canvas></div>
+    </div>
+    <!-- EPS Panel 5: Diff Analysis -->
+    <div class="eps-panel" id="eps-p5" style="padding:16px">
+      <div class="card">
+        <div class="card-h"><span class="icon-n">📊</span>仿真曲线 vs 实车参考曲线对比</div>
+        <div id="e_t5_btn_row" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px"></div>
+        <div class="alert info">实车参考：同类商用车统计数据，电机额定电流约50~80 A。</div>
+      </div>
+      <div class="card" style="margin-top:0"><div class="card-h"><span class="icon-n">图</span><span id="e_t5_heading">助力电流对比（10 km/h）</span>
+        <button class="btn-ghost" style="margin-left:auto;width:auto;padding:6px 14px;font-size:12px" onclick="epsDlChart('ecanvas5a','助力曲线差异对比')">📥 下载</button>
+      </div><canvas id="ecanvas5a"></canvas></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+        <div class="card" style="margin-bottom:0"><div class="pname">仿真最大电流</div><div class="pval" id="er5_smax" style="font-size:20px">—</div></div>
+        <div class="card" style="margin-bottom:0"><div class="pname">实车参考最大电流</div><div class="pval" id="er5_rmax" style="font-size:20px">—</div></div>
+      </div>
+      <div class="card" style="margin-top:8px"><div class="card-h"><span class="icon-n">图</span>全车速域电流差值
+        <button class="btn-ghost" style="margin-left:auto;width:auto;padding:6px 14px;font-size:12px" onclick="epsDlChart('ecanvas5b','全车速域电流差值')">📥 下载</button>
+      </div><canvas id="ecanvas5b"></canvas></div>
+    </div>
+  </div><!-- /eps-wrap -->
+</div><!-- /step6 -->
+
+<!-- ══════════════ STEP 7: 汇总 & 图示 ══════════════ -->
+<div class="step-content" id="step7">
+  <div class="card">
+    <div class="card-h">📋 设计结果汇总</div>
+    <div id="summary_grid"></div>
+  </div>
+  <div class="cols">
+    <div class="card">
+      <div class="card-h">✅ 综合校核结论</div>
+      <div id="final_verdict"></div>
+    </div>
+    <div class="card">
+      <div class="card-h">🎨 转向器结构示意图</div>
+      <canvas class="diag" id="diagCanvas" width="560" height="380"></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-h">📊 完整参数一览表</div>
+    <div id="full_table"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     STEP 8: 智能评分报告
+══════════════════════════════════ -->
+<div class="step-content" id="step8">
+  <div class="card">
+    <div class="card-h"><span class="icon-n">ℹ</span>评分说明</div>
+    <div class="alert info">
+      <strong>评分维度（共100分）：</strong><br>
+      ① <b>转向系基本参数（20分）</b>：原地转向阻力矩 M₀、转向盘手力 Fh、外/内轮偏转角 θ_out/θ_in、角传动比 iw 范围<br>
+      ② <b>循环球螺旋副参数（20分）</b>：钢球间距 b=P−d、钢球数 n、导程角 γ、传动比范围<br>
+      ③ <b>效率与强度校核（30分）</b>：正效率 η⁺、逆效率 η⁻、齿扇弯曲应力 σw、钢球接触应力 σH<br>
+      ④ <b>摇臂轴 & 花键设计（15分）</b>：摇臂轴最小直径 d（式8-33）、花键弯曲应力<br>
+      ⑤ <b>助力减速机构（15分）</b>：电机最小助力转矩 T_motor、蜗轮蜗杆几何与强度<br><br>
+      <b>注意：</b>请先完成各步骤计算，再生成评分报告。
+    </div>
+  </div>
+  <div id="scoreResult8"></div>
+  <div class="card">
+    <div class="card-h"><span class="icon-n">📊</span>操作</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">
+      <button class="btn btn-primary" style="flex:1;padding:16px;font-size:15px" onclick="calcCircBallScore()">🔄 生成智能评分</button>
+      <button class="btn btn-primary" style="flex:1;padding:16px;font-size:15px;background:#1a7a3c" onclick="generateCircBallReport()">📥 下载评分报告（TXT）</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     STEP 9: 说明书评阅
+══════════════════════════════════ -->
+<div class="step-content" id="step9">
+  <div class="card">
+    <div class="card-h"><span class="icon-n">📝</span>设计说明书离线评阅系统</div>
+    <div class="alert info">
+      上传学生 .pdf 说明书，系统自动提取文本与工具计算值逐项比对，完全离线运行。<br>
+      请先在各步骤完成计算，再上传说明书评阅。
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-h"><span class="icon-n">📊</span>评分维度（总分100分）</div>
+    <div class="grade-criteria-row">
+      <div class="grade-criteria-item"><div class="pct">70%</div><div class="lbl">数据符合度</div>
+        <div class="desc">13项参数与工具计算值比对（偏差≤2%满分），含M₀、Fh、θ_out/in、iw、γ、η⁺、b_clear、σw、σH、花键σ、d_arm、T_motor</div>
+      </div>
+      <div class="grade-criteria-item"><div class="pct">20%</div><div class="lbl">内容质量</div>
+        <div class="desc">参考文献引用、计算过程完整、设计分析深度、内容充实度</div>
+      </div>
+      <div class="grade-criteria-item"><div class="pct">10%</div><div class="lbl">排版格式规范</div>
+        <div class="desc">章节结构、图表编号、公式编号、单位规范、标题层次</div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-h"><span class="icon-n">📂</span>上传设计说明书（PDF格式）</div>
+    <div class="upload-zone" onclick="document.getElementById('revFile').click()" id="revUploadZone">
+      <div style="font-size:48px;margin-bottom:10px">📄</div>
+      <div style="font-size:14px;color:#555">点击选择说明书 PDF 文件</div>
+      <div style="font-size:12px;color:#888;margin-top:6px">支持含可选文字的PDF（非扫描图片）</div>
+    </div>
+    <input type="file" id="revFile" accept=".pdf" style="display:none" onchange="onRevFileSelect(event)">
+    <div id="revFileName" style="margin-top:10px;font-size:13px;color:#1a5fa8;font-weight:700"></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><span class="icon-n">▶</span>评阅操作</div>
+    <div id="revBtnArea">
+      <button class="btn btn-primary" style="padding:16px;font-size:15px" onclick="gradeRevReport()">🔍 开始评阅说明书</button>
+    </div>
+    <div id="revGradeResult"></div>
+    <div id="revReportBtns" style="display:none;margin-top:14px">
+      <div class="alert info" style="background:#e8f5e9;border-color:#4caf50;color:#2e7d32;margin-bottom:12px">
+        评阅完成！点击下方按钮生成报告文件。
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <button class="btn btn-primary" style="flex:1;padding:16px;font-size:15px;background:#1a7a3c" onclick="generateRevReportFile()">📥 生成完整评阅报告（TXT）</button>
+        <button class="btn btn-primary" style="flex:1;padding:16px;font-size:15px;background:#e67e22" onclick="gradeRevReport()">🔄 重新评阅</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  《汽车设计》第6版 · 闵海涛 王建华 编著 · 第八章转向系设计<br>
+  原地转向阻力矩 · 传动比与效率 · 循环球螺旋副设计 · 齿扇&amp;花键校核 · EPS蜗轮蜗杆助力减速机构
+</div>循环球式转向器设计计算工具 · 参考《汽车设计》第6版（闵海涛 王建华）第八章 & 转向系统设计 · 广西大学车辆工程专业 · 仅供教学参考<br>原地转向阻力矩 · 传动比与效率 · 螺杆传动副设计 · 齿扇与花键校核 · EPS蜗轮蜗杆助力减速机构 · EPS动态仿真</div>
+</div>
+
+<script>
+// ══════════════════════════════
+//  STATE
+// ══════════════════════════════
+var curStep = 0;
+var manualModule = false;
+var P = {
+  ma:4500, af:0.35, p_tire:0.40, f_mu:0.70,
+  Dsw:500, iw_req:20, eta_p:0.80, L2L1:1.0, Fhand:200, Larm:135,
+  a_off:50,
+  L_wb:3800, B_track:1800, Rmin:9500,
+  D:32, D1:29, d:7.144, Pp:10.0, W:2.5, Ncirc:2, beta_c:45, neff_ratio:0.83, rho_deg:5.71,
+  m_sec:5.0,
+  zp:13, z:5, alpha:27.5, X1:0.80, bsec:26,
+  ms:0.80, Zs:36, Ls:25,
+  // Step 4 - pitman arm shaft
+  K_arm:3.0, tau0_arm:700,
+  // Step 5: 助力减速机构
+  F_hand:50, i_worm:18, eta_worm:0.75,
+  z1w:2, mw:2.5, d1w:31.5, haw:1.0,
+  sigH_w:200, sigF_w:56, KAw:1.0, Kvw:1.1, Kbw:1.1
+};
+var FMT = {
+  ma:0, af:3, p_tire:3, f_mu:2,
+  Dsw:0, iw_req:1, eta_p:2, L2L1:2, Fhand:0, Larm:0,
+  a_off:0,
+  L_wb:0, B_track:0, Rmin:0,
+  D:1, D1:1, d:3, Pp:1, W:1, Ncirc:0, beta_c:0, neff_ratio:2, rho_deg:2,
+  m_sec:1,
+  zp:0, z:0, alpha:1, X1:2, bsec:0,
+  ms:2, Zs:0, Ls:0,
+  K_arm:2, tau0_arm:0,
+  F_hand:0, i_worm:0, eta_worm:2, z1w:0, mw:2, d1w:1, haw:2,
+  sigH_w:0, sigF_w:0, KAw:2, Kvw:2, Kbw:2
+};
+
+// Table 4-1 data
+var TABLE41 = {
+  3.0: {D:[20,23], D1:[20,23], d:[5.556], P:[7.938], W:[1.5], nut:[41,45], zf:[12,13], bs:[22,25], z:3, arm:22},
+  3.5: {D:[23,25], D1:[23,25], d:[5.556,6.350], P:[8.731], W:[1.5], nut:[45,52], zf:[13], bs:[25,27], z:5, arm:26},
+  4.0: {D:[25], D1:[25], d:[6.350], P:[9.525], W:[1.5], nut:[46,47], zf:[13], bs:[25,28], z:5, arm:30},
+  4.5: {D:[28], D1:[28], d:[7.144], P:[9.525], W:[1.5], nut:[58], zf:[13], bs:[30], z:5, arm:32},
+  5.0: {D:[30,32], D1:[29], d:[7.144], P:[9.525,10.0], W:[1.5,2.5], nut:[56,59,62], zf:[13], bs:[26,28,30,32], z:5, arm:32},
+  6.0: {D:[35], D1:[34], d:[7.144,8.0], P:[10.0,11.0], W:[2.5], nut:[72,78], zf:[13,14,15], bs:[30,34,38], z:5, arm:38},
+  6.5: {D:[40], D1:[38], d:[7.938], P:[11.0], W:[2.5], nut:[80,82], zf:[13], bs:[35,38], z:5, arm:42}
+};
+
+// Table 6-1 module selection by G1
+var MODULE_G1_CAR = {3.0:[3500,3800],3.5:[4700,7350],4.0:[7000,9000],4.5:[8300,11000],5.0:[10000,11000]};
+var MODULE_G1_TRUCK = {3.0:[3000,5000],3.5:[4500,7500],4.0:[5500,18500],4.5:[7000,19500],5.0:[9000,24000],6.0:[17000,37000],6.5:[23000,44000]};
+
+function sp(k,v){
+  P[k]=parseFloat(v);
+  var el=document.getElementById('v_'+k);
+  if(el) el.textContent=parseFloat(v).toFixed(FMT[k]!==undefined?FMT[k]:2);
+  // 当 W 改变时，自动按 η_n = W/(W+0.5) 建议初值并刷新输入框
+  if(k==='W'){
+    var sugRatio = Math.round(P.W/(P.W+0.5)*100)/100;
+    P.neff_ratio = sugRatio;
+    var ratioEl = document.getElementById('s_neff_ratio');
+    if(ratioEl) ratioEl.value = sugRatio;
+    var ratioVEl = document.getElementById('v_neff_ratio');
+    if(ratioVEl) ratioVEl.textContent = sugRatio.toFixed(2);
+  }
+  // 同步 m_sec 显示
+  if(k==='m_sec'){
+    var vm=document.getElementById('v_m_sec');
+    if(vm) vm.textContent=parseFloat(v).toFixed(1);
+  }
+  // 当②步 alpha/zp/z 改变时，同步⑤步镜像输入框显示
+  if(k==='alpha'){var e=document.getElementById('v_alpha_s4');if(e)e.textContent=parseFloat(v).toFixed(1);}
+  if(k==='zp'){var e=document.getElementById('v_zp_s4');if(e)e.textContent=Math.round(v);}
+  if(k==='z'){var e=document.getElementById('v_z_s4');if(e)e.textContent=Math.round(v);}
+  if(k==='ma'||k==='af') autoSelectModule();
+  compute();
+}
+
+// ⑤步独立输入：更新同一 P 键，同步①步显示框
+function sp4(k,v){
+  P[k]=parseFloat(v);
+  // 同步主显示值
+  var el=document.getElementById('v_'+k);
+  if(el) el.textContent=parseFloat(v).toFixed(FMT[k]!==undefined?FMT[k]:2);
+  // 同步⑤步镜像显示
+  if(k==='alpha'){var e=document.getElementById('v_alpha_s4');if(e)e.textContent=parseFloat(v).toFixed(1);}
+  if(k==='zp'){var e=document.getElementById('v_zp_s4');if(e)e.textContent=Math.round(parseFloat(v));}
+  if(k==='z'){var e=document.getElementById('v_z_s4');if(e)e.textContent=Math.round(parseFloat(v));}
+  compute();
+}
+
+function setModuleManual(mv){
+  manualModule=true;
+  applyTableRow(parseFloat(mv));
+  compute();
+}
+
+function autoSelectModule(){
+  if(manualModule) return;
+  var G1=P.ma*P.af*9.8;
+  var isCar = P.ma<3000;
+  var tab = isCar? MODULE_G1_CAR : MODULE_G1_TRUCK;
+  var sel=3.0;
+  var mods = Object.keys(tab).map(parseFloat).sort(function(a,b){return a-b;});
+  for(var i=0;i<mods.length;i++){
+    var m=mods[i];
+    if(G1>=tab[m][0]) sel=m;
+  }
+  var selEl=document.getElementById('sel_m');
+  if(selEl) selEl.value=sel;
+  applyTableRow(sel);
+}
+
+function applyTableRow(m){
+  var row=TABLE41[m];
+  if(!row) return;
+  var D=row.D[0], D1=row.D1[0], d=row.d[0], Pv=row.P[row.P.length-1], W=row.W[row.W.length-1];
+  var zf=row.zf[0], bs=row.bs[Math.floor(row.bs.length/2)], z=row.z||5;
+  setField('D',D); setField('D1',D1); setField('d',d);
+  setField('Pp',Pv); setField('W',W);
+  P.D=D; P.D1=D1; P.d=d; P.Pp=Pv; P.W=W; P.zp=zf; P.bsec=bs; P.z=z;
+  // 同步 η_n 建议值
+  var sugRatio = Math.round(W/(W+0.5)*100)/100;
+  P.neff_ratio = sugRatio;
+  setField('neff_ratio', sugRatio);
+  // 同步模数到⑤步独立输入框
+  P.m_sec=m;
+  setField('m_sec',m);
+  syncStep4Fields();
+}
+
+function setField(k,v){
+  var el=document.getElementById('s_'+k);
+  if(el) el.value=v;
+  var vEl=document.getElementById('v_'+k);
+  if(vEl) vEl.textContent=parseFloat(v).toFixed(FMT[k]!==undefined?FMT[k]:2);
+}
+
+// 将②步 alpha/zp/z 的当前值同步到⑤步独立输入框
+function syncStep4Fields(){
+  var s4m=document.getElementById('s4_m'); if(s4m) s4m.value=P.m_sec;
+  var v_msec=document.getElementById('v_m_sec'); if(v_msec) v_msec.textContent=parseFloat(P.m_sec).toFixed(1);
+  var s4a=document.getElementById('s4_alpha'); if(s4a) s4a.value=P.alpha;
+  var v_as4=document.getElementById('v_alpha_s4'); if(v_as4) v_as4.textContent=parseFloat(P.alpha).toFixed(1);
+  var s4zp=document.getElementById('s4_zp'); if(s4zp) s4zp.value=P.zp;
+  var v_zps4=document.getElementById('v_zp_s4'); if(v_zps4) v_zps4.textContent=Math.round(P.zp);
+  var s4z=document.getElementById('s4_z'); if(s4z) s4z.value=P.z;
+  var v_zs4=document.getElementById('v_z_s4'); if(v_zs4) v_zs4.textContent=Math.round(P.z);
+  var s4X1=document.getElementById('s4_X1'); if(s4X1) s4X1.value=P.X1;
+  var v_X1=document.getElementById('v_X1'); if(v_X1) v_X1.textContent=parseFloat(P.X1).toFixed(2);
+  var s4bsec=document.getElementById('s4_bsec'); if(s4bsec) s4bsec.value=P.bsec;
+  var v_bsec=document.getElementById('v_bsec'); if(v_bsec) v_bsec.textContent=Math.round(P.bsec);
+}
+
+function goStep(i){
+  curStep=i;
+  document.querySelectorAll('.step-btn').forEach(function(b,j){b.className='step-btn'+(j===i?' active':'');});
+  document.querySelectorAll('.step-content').forEach(function(c,j){c.className='step-content'+(j===i?' active':'');});
+  if(i===6) setTimeout(syncEpsFromMain,50);
+  if(i===7) setTimeout(function(){drawDiagram();},80);
+  if(i===8) setTimeout(compute,50);
+  if(i===9) setTimeout(compute,50);
+}
+
+// ══════════════════════════════
+//  MAIN COMPUTE
+// ══════════════════════════════
+var _lastCircBallCalc = null; // store last computed values for scoring
+
+function compute(){
+  var g=9.8;
+  var G1=P.ma*P.af*g;       // front axle load N (g=9.8 m/s²)
+  var f=P.f_mu, pt=P.p_tire;
+
+  // 式(8-25)原地转向阻力矩（《汽车设计》第6版，闵海涛 王建华）
+  // M_R = (f/3)·√(G₁³/p)   [G₁单位N，p单位MPa=N/mm²，M_R单位N·mm]
+  var M0 = (f/3) * Math.sqrt(Math.pow(G1, 3) / pt);
+
+  // Lead angle of screw
+  var gamma_rad = Math.atan(P.Pp/(Math.PI*P.D));
+  var gamma_deg = gamma_rad*180/Math.PI;
+
+  // Update gamma display in step1 (readonly box)
+  var gDisp = document.getElementById('s_gamma_disp');
+  if(gDisp) gDisp.value = gamma_deg.toFixed(2);
+  var gDispV = document.getElementById('v_gamma_disp');
+  if(gDispV) gDispV.textContent = gamma_deg.toFixed(2);
+
+  // Friction angle — now taken directly from input ρ
+  var rho_rad = P.rho_deg * Math.PI / 180;
+  var rho_deg = P.rho_deg;
+
+  // Efficiency
+  var eta_plus = Math.tan(gamma_rad)/Math.tan(gamma_rad+rho_rad);
+  var eta_minus = (gamma_rad>rho_rad)? Math.tan(gamma_rad-rho_rad)/Math.tan(gamma_rad) : 0;
+
+  // Auto-update η_p (正效率) from computed eta_plus
+  P.eta_p = eta_plus;
+  var etaDisp = document.getElementById('v_eta_p');
+  if(etaDisp) etaDisp.textContent = eta_plus.toFixed(2);
+  var etaInput = document.getElementById('s_eta_p');
+  if(etaInput) etaInput.value = eta_plus.toFixed(4);
+
+  // Sector gear geometry — 使用⑤步独立输入的模数 m_sec
+  var m = P.m_sec || 5;
+  var r_sec = m*P.zp/2;       // sector pitch radius mm
+  var d_sec = m*P.zp;         // pitch circle diameter mm
+
+  // 角传动比（由齿扇几何计算）: iw = 2π·r_sec / P
+  var iw = 2*Math.PI*r_sec/P.Pp;
+
+  // 式(8-26): F_h = 2L₁·M_R / (L₂·D_sw·i_w·η₊)
+  // L₂/L₁ = P.L2L1 → F_h = 2·M₀ / (L₂/L₁ · D_sw · iw · η₊)
+  var Fh_actual = 2*M0 / (P.L2L1 * P.Dsw * iw * P.eta_p);  // N (实际计算手力)
+
+  // 转向器输出力矩（齿扇/摇臂轴处）: M_out = M₀ × L₁/L₂ = M₀ / (L₂/L₁)
+  var M_out = M0 / P.L2L1;   // N·mm (纠正：由式8-26推导)
+
+  // 方向盘转矩（用于信息显示）
+  var Mh = P.Fhand*P.Dsw/2;  // N·mm (设计限值手力对应转矩)
+
+  // 力传动比: ip = (L₂/L₁)·iw·Dsw·η₊ / (2·a)
+  var ip = P.L2L1 * iw * P.Dsw * P.eta_p / (2*P.a_off);
+
+  // Ball count per circuit: n = π·D·W·cosγ / d  (式8-29)
+  var n_balls = Math.round(Math.PI*P.D*P.W*Math.cos(gamma_rad)/P.d);
+
+  // D2: screw nut inner diameter  D₂ = D₁ + (5%~10%)D，取7.5%中间值
+  var D2 = P.D1 + 0.075*P.D;
+
+  // Groove radius R2 = (0.51~0.53)d，取0.52d
+  var R2 = 0.52*P.d;
+
+  // b clearance check: b = P - d > 2.5mm
+  var b_clear = P.Pp - P.d;
+
+  // Screw nut travel
+  // 转向盘总转圈数 (由转向角计算): Nsw ≈ iw × θ_in/180 (近似)
+  // 用于螺杆长度计算，单位:圈
+  var Nsw_eff = theta_in > 0 ? Math.max(2.0, iw * (theta_in * 2 / 180)) : 4.0;  // 左右极限合计
+  var S_oneway = (Nsw_eff/2)*P.Pp;  // one-side travel
+  var L_total = Nsw_eff*P.Pp;        // total travel
+  var L_end1 = 2*0.625*P.d;        // 0.5~0.75d end buffer
+  var L_end2 = 2*5.5;               // 5.5mm end distance
+  var L_screw = L_total + Math.max(L_end1, L_end2);
+
+  // Sector gear forces: Fa = 2·M_out / d_sec (式8-32 中的 F)
+  var Fa = 2*M_out/d_sec;
+  var ha = P.X1*m;
+  var hf = (P.X1+0.20)*m;
+  var h_tooth = ha+hf;
+  var s_tooth = Math.PI*m/2;  // 分度圆处齿厚 s ≈ πm/2（基圆齿厚近似）
+  // 式(8-32): σw = 6F·h / (B·s²)
+  var sigma_w = 6*Fa*h_tooth/(P.bsec*s_tooth*s_tooth);
+  var sigma_w_allow = 540;  // MPa（20CrMnTi，《汽车设计》5版 p.273）
+
+  // Axial force on screw F₂ = Fa = 2·M_out / d_sec (式8-31)
+  var beta_c_rad = P.beta_c*Math.PI/180;
+  var F2 = Fa;  // screw axial force ≈ sector tangential force
+
+  // Ball normal force per ball (in loaded zone): 式(8-31) F₃ = F₂ / (n_eff·cosβ·cosγ)
+  // 总钢球数 N = n_balls(每路) × Ncirc(路数); 参与工作钢球数 = η_n × N
+  var N_total = n_balls * P.Ncirc;
+  var n_loaded = Math.max(1, N_total * P.neff_ratio);
+  var F3_per = F2/(n_loaded*Math.cos(beta_c_rad)*Math.cos(gamma_rad));
+
+  // Hertz contact stress: 式(8-30)
+  // k系数查表8-3: 依据 A/B 值, 其中 A=(1/r-1/R2)/2, B=(1/r+1/R_screw)/2
+  // R2=滚道截面半径; r=钢球半径; R_screw=螺杆外半径(=D1/2)
+  var E_mat = 2.1e5;  // MPa 弹性模量
+  var r_ball = P.d/2;
+  var R2r = R2;  // 滚道截面半径 (不再round，直接使用)
+  var R_screw = P.D1/2;   // 螺杆外半径
+  // 表8-3中: A = (1/r_ball - 1/R2r)/2, B = (1/r_ball + 1/R_screw)/2
+  var A_k = (1/r_ball - 1/R2r)/2;
+  var B_k = (1/r_ball + 1/R_screw)/2;
+  var AB_ratio = Math.abs(A_k/B_k);
+  var K_hertz = getKFactor(AB_ratio);
+  // 式(8-30): σ = k·∛(F₃·E²/π³r²)  (简化公式，r=钢球半径)
+  var sigma_H = K_hertz*Math.pow(6*F3_per*E_mat*E_mat/(Math.pow(Math.PI,3)*r_ball*r_ball), 1/3);
+  var sigma_H_allow = 2500;  // MPa（HRC58~64，《汽车设计》5版 p.273）
+
+  // Involute spline calculation (摇臂轴花键)
+  var ms=P.ms, Zs=P.Zs, Ls_sp=P.Ls;
+  var Ds_sp = ms*Zs;                     // pitch diameter
+  var Db_sp = ms*Zs*Math.cos(45*Math.PI/180);  // base circle
+  var Dei_sp = ms*(Zs+1.2);             // inner spline major dia
+  var Dee_sp = ms*(Zs+0.8);             // outer spline major dia
+  var Die_sp = ms*(Zs-1.2);             // outer spline minor dia
+  var Dm_sp = (Ds_sp+Die_sp)/2;         // mean diameter
+  var hk_sp = ms;                        // tooth working height
+  var sigma_sp_bend = 6*M_out/(Zs*Dm_sp*hk_sp*Ls_sp); // bending stress (MPa)
+  var sigma_sp_allow = 150;              // MPa allowable bending
+
+  // 式(8-33): 转向摇臂轴直径 d = ∛[K·M_R / (0.2·τ₀)]
+  var d_arm = Math.pow(P.K_arm * M0 / (0.2 * P.tau0_arm), 1/3);  // mm
+
+  // 转向轮偏转角计算（参考阿克曼几何）
+  // K = B_track - 2*a_off (两主销轴线延长线到地面交点间距)
+  var K_track = P.B_track - 2*P.a_off;
+  // 外轮转角: θ_out = arctan(L/(Rmin + K/2))
+  var theta_out = Math.atan(P.L_wb / (P.Rmin + K_track/2)) * 180/Math.PI;
+  // 内轮转角: θ_in = arctan(L/(Rmin - K/2))
+  var theta_in  = Math.atan(P.L_wb / (P.Rmin - K_track/2)) * 180/Math.PI;
+  // 理想阿克曼条件: cotθ_out - cotθ_in = K/L
+  var cot_out = (theta_out>0) ? 1/Math.tan(theta_out*Math.PI/180) : 9999;
+  var cot_in  = (theta_in>0)  ? 1/Math.tan(theta_in*Math.PI/180)  : 9999;
+  var ackermann_diff = cot_out - cot_in;
+  var ackermann_ideal = K_track / P.L_wb;
+  var ackermann_ok = (theta_out < theta_in);
+
+  // ── RENDER ──
+  renderStep0(G1, M0, M_out, Mh, Fh_actual, iw, gamma_deg, eta_plus, eta_minus, ip, K_track, theta_out, theta_in, cot_out, cot_in, ackermann_diff, ackermann_ideal, ackermann_ok);
+  renderStep1(m, G1, gamma_deg, b_clear, D2, n_balls, R2);
+  renderStep2(iw, gamma_deg, rho_deg, eta_plus, eta_minus, r_sec, ip, M_out, Mh, G1, Fh_actual);
+  renderStep3(n_balls, N_total, n_loaded, D2, R2, L_total, L_screw, S_oneway, gamma_deg, b_clear, R_screw, A_k, B_k, AB_ratio);
+  renderStep4(m, d_sec, ha, hf, h_tooth, s_tooth, Fa, sigma_w, sigma_w_allow, F2, F3_per, n_loaded, N_total, K_hertz, sigma_H, sigma_H_allow, AB_ratio, R2, R_screw, A_k, B_k, Ds_sp, Db_sp, Dei_sp, Dee_sp, Die_sp, Dm_sp, hk_sp, sigma_sp_bend, sigma_sp_allow, G1, M_out, d_arm);
+  renderSummary(G1, M0, M_out, Fh_actual, iw, gamma_deg, eta_plus, eta_minus, n_balls, N_total, n_loaded, L_screw, sigma_w, sigma_w_allow, sigma_H, sigma_H_allow, D2, b_clear, m, d_sec, ha, hf, h_tooth, Fa, F2, F3_per, K_hertz, r_sec, R2, AB_ratio, A_k, B_k);
+
+  // ── Step 5: 助力减速机构 ──
+  var T_sw_EPS = P.F_hand * P.Dsw / 2;  // N·mm
+  // 式(3-20): T_motor = [M₀/(iw·η_p) − T_sw_EPS] / (i_worm·η_worm)
+  // 使用齿扇计算得到的实际iw（非设计参考值iw_req）
+  var T_motor_min = (M0 / (iw * P.eta_p) - T_sw_EPS) / (P.i_worm * P.eta_worm);
+  var z2w = Math.round(P.i_worm * P.z1w);
+  var d2w = P.mw * z2w;
+  var aw  = (P.d1w + d2w) / 2;
+  var gamma_w = Math.atan(P.z1w * P.mw / P.d1w);
+  var gamma_w_deg = gamma_w * 180/Math.PI;
+  var da1w = P.d1w + 2 * P.haw * P.mw;
+  var df1w = P.d1w - 2*(P.haw + 0.25)*P.mw;
+  var b1w  = (11 + 0.06*z2w) * P.mw;
+  var da2w = d2w + 2 * P.haw * P.mw;
+  var df2w = d2w - 2*(P.haw + 0.25)*P.mw;
+  var b2w  = 0.75 * da1w;
+  var T2w  = T_motor_min * P.i_worm * P.eta_worm;
+  var Ft2w = (T2w > 0 ? 2*T2w/d2w : 0);
+  var K_w  = P.KAw * P.Kvw * P.Kbw;
+  var ZE_w = 160;
+  var sig_H_w = (b2w>0 && P.d1w>0) ? ZE_w*Math.sqrt(K_w*Ft2w/(b2w*P.d1w)) : 0;
+  var zeq_w = z2w / Math.pow(Math.cos(gamma_w), 3);
+  var Y_Fw = zeq_w < 30 ? 2.59 : zeq_w < 40 ? 2.53 : zeq_w < 50 ? 2.47 : 2.44;
+  var sig_F_w = (b2w>0 && P.mw>0) ? 1.53*K_w*Ft2w*Y_Fw/(b2w*P.mw) : 0;
+  var worm_H_ok = sig_H_w <= P.sigH_w;
+  var worm_F_ok = sig_F_w <= P.sigF_w;
+  renderStep5(M0, T_sw_EPS, T_motor_min, z2w, d2w, aw, gamma_w_deg, da1w, df1w, b1w, da2w, df2w, b2w, T2w, Ft2w, K_w, zeq_w, Y_Fw, sig_H_w, sig_F_w, worm_H_ok, worm_F_ok);
+  syncStep4Fields();
+
+  // Store for scoring / review
+  _lastCircBallCalc = {
+    G1:G1, M0:M0, M_out:M_out, Fh_actual:Fh_actual,
+    iw:iw, gamma_deg:gamma_deg, eta_plus:eta_plus, eta_minus:eta_minus,
+    sigma_w:sigma_w, sigma_w_allow:sigma_w_allow,
+    sigma_H:sigma_H, sigma_H_allow:sigma_H_allow,
+    n_balls:n_balls, N_total:N_total, b_clear:b_clear,
+    theta_out:theta_out, theta_in:theta_in,
+    d_arm:d_arm, sigma_sp_bend:sigma_sp_bend,
+    T_motor_min:T_motor_min, sig_H_w:sig_H_w, sig_F_w:sig_F_w,
+    worm_H_ok:worm_H_ok, worm_F_ok:worm_F_ok,
+    ip:ip, L_screw:L_screw
+  };
+}
+
+function getKFactor(ab_ratio){
+  // 表8-3 k系数表：依据 A/B 值查取
+  // A=(1/r-1/R2)/2, B=(1/r+1/R_screw)/2; A/B ∈ [0,1]
+  // A/B=0 对应球-平面接触; A/B=1 对应球-球接触
+  var tab = [
+    [0.00,0.388],[0.10,0.399],[0.20,0.411],[0.30,0.427],
+    [0.40,0.446],[0.50,0.470],[0.60,0.497],[0.70,0.530],
+    [0.75,0.548],[0.80,0.567],[0.85,0.590],[0.90,0.621],
+    [0.95,0.659],[1.00,0.717]
+  ];
+  var r = Math.max(0, Math.min(1, ab_ratio));
+  if(r<=tab[0][0]) return tab[0][1];
+  if(r>=tab[tab.length-1][0]) return tab[tab.length-1][1];
+  for(var i=0;i<tab.length-1;i++){
+    if(r>=tab[i][0] && r<=tab[i+1][0]){
+      var t=(r-tab[i][0])/(tab[i+1][0]-tab[i][0]);
+      return tab[i][1]+t*(tab[i+1][1]-tab[i][1]);
+    }
+  }
+  return 0.470;
+}
+
+// ── RENDER STEP 0 ──
+function renderStep0(G1,M0,M_out,Mh,Fh_actual,iw,gamma_deg,eta_plus,eta_minus,ip,K_track,theta_out,theta_in,cot_out,cot_in,ackermann_diff,ackermann_ideal,ackermann_ok){
+  var ok_Fh = Fh_actual <= P.Fhand;
+  var limit_label = (P.ma>=3000)? '无助力货车限值 250 N' : '无助力轿车限值 100 N';
+  var limit_val   = (P.ma>=3000)? 250 : 100;
+  var ok_std = Fh_actual <= limit_val;
+
+  var html='<div class="proc"><h4>📐 原地转向阻力矩计算（式8-25）</h4><div class="pg">';
+  html+=pr('前轴负荷 G₁ = m<sub>a</sub>×α<sub>f</sub>×g（g=9.8 m/s²）','G₁ = '+f0(G1)+' N','pvt');
+  html+=pr('原地转向阻力矩 M<sub>R</sub> = (f/3)·√(G₁³/p)（式8-25）','M<sub>R</sub> = '+f1(M0/1000)+' N·m','pvo');
+  html+='<div class="sep"></div>';
+  html+=pr('L₂/L₁（转向节臂/摇臂比）','= '+f2(P.L2L1),'');
+  html+=pr('转向器输出力矩（摇臂轴处） M = M₀/(L₂/L₁)','M = '+f1(M_out/1000)+' N·m','pvg');
+  html+='</div></div>';
+
+  var html_fh='<div class="proc"><h4>📐 转向盘手力计算（式8-26）</h4><div class="pg">';
+  html_fh+=pr('式(8-26)：F<sub>h</sub> = 2M₀ / [(L₂/L₁)·D<sub>sw</sub>·i<sub>w</sub>·η₊]','','');
+  html_fh+=pr('实际角传动比 i<sub>w</sub>（由齿扇计算）','i<sub>w</sub> = '+f2(iw),'pvt');
+  html_fh+=pr('正效率 η₊','η₊ = '+f1(eta_plus*100)+' %','pvo');
+  html_fh+=pr('计算得转向盘手力 F<sub>h</sub>','F<sub>h</sub> = '+f1(Fh_actual)+' N',ok_std?'pvg':'pvr');
+  html_fh+=pr('设计手力限值（用户输入）','≤ '+P.Fhand+' N','');
+  html_fh+=pr(limit_label,'≤ '+limit_val+' N','');
+  html_fh+='</div></div>';
+  html_fh+=vd_(ok_std,'✅','❌','计算手力 F<sub>h</sub> = '+f1(Fh_actual)+' N '+(ok_std?'≤ '+limit_val+' N，满足'+limit_label.replace('限值','') +'要求 ✓':'> '+limit_val+' N，超出标准！建议增大 i<sub>w</sub>（增加齿扇模数/齿数）或扩大 D<sub>sw</sub>'));
+
+  document.getElementById('out_step0').innerHTML=html+html_fh;
+
+  var html2='<div class="proc"><div class="pg">';
+  html2+=pr('实际角传动比 i<sub>w</sub>（由齿扇几何推算）','i<sub>w</sub> = '+f2(iw),'pvt');
+  html2+=pr('设计参考角传动比 i<sub>w_req</sub>（设计输入）','= '+P.iw_req,'');
+  html2+=pr('力传动比 i<sub>p</sub> = (L₂/L₁)·i<sub>w</sub>·D<sub>sw</sub>·η₊/(2a)','i<sub>p</sub> = '+f1(ip),'pvg');
+  html2+=pr('正效率 η⁺（由螺线导程角计算）','η⁺ = '+f1(eta_plus*100)+' %','pvo');
+  html2+='<div class="sep"></div>';
+  html2+=pr('标准：无助力货车 F<sub>h</sub>','≤ 250 N','');
+  html2+=pr('标准：无助力轿车 F<sub>h</sub>','≤ 100 N','');
+  html2+=pr('标准：有助力装置 F<sub>h</sub>','≤ 50 N','');
+  html2+='</div></div>';
+  html2+=vd_(ok_Fh,'✅','⚠️','计算手力 F<sub>h</sub> = '+f1(Fh_actual)+' N'+(ok_Fh?' ≤ 设计限值 '+P.Fhand+' N ✓':' > 设计限值 '+P.Fhand+' N，须调整'));
+  document.getElementById('perf_step0').innerHTML=html2;
+
+  var ok_iw_range = iw>=14&&iw<=32;
+  var html3='<div class="proc"><h4>转向系传动比分析</h4><div class="pg">';
+  html3+=pr('设计参考角传动比 i<sub>w_req</sub>',''+P.iw_req,'pvt');
+  html3+=pr('实际角传动比（由齿扇参数计算）','i<sub>w</sub> = '+f2(iw),ok_iw_range?'pvg':'pvr');
+  html3+=pr('力传动比 i<sub>p</sub> = (L₂/L₁)·i<sub>w</sub>·D<sub>sw</sub>·η₊/(2a)','i<sub>p</sub> = '+f1(ip),'pvo');
+  html3+=pr('节臂与摇臂长比 L₂/L₁（参数 L₂/L₁）','= '+f2(P.L2L1),'');
+  html3+='</div></div>';
+  document.getElementById('angle_analysis').innerHTML=html3;
+
+  // 转向轮偏转角
+  var K_el = document.getElementById('v_K_display');
+  if(K_el) K_el.textContent = f1(K_track);
+  var Nsw_from_angle = iw * (theta_in * 2 / 180);
+  var tb_ang =
+    '<tr><td class="label">两主销距 K=B−2a</td><td class="form">B−2×a</td><td class="val">'+f1(K_track)+'</td><td class="unit">mm</td></tr>'+
+    '<tr><td class="label">外轮最大偏转角 θ<sub>out</sub></td><td class="form">arctan(L/(R<sub>min</sub>+K/2))</td><td class="val">'+f2(theta_out)+'</td><td class="unit">°</td></tr>'+
+    '<tr><td class="label">内轮最大偏转角 θ<sub>in</sub></td><td class="form">arctan(L/(R<sub>min</sub>−K/2))</td><td class="val">'+f2(theta_in)+'</td><td class="unit">°</td></tr>'+
+    '<tr><td class="label">cot θ<sub>out</sub> − cot θ<sub>in</sub>（实际）</td><td class="form">cot θ<sub>out</sub> − cot θ<sub>in</sub></td><td class="val">'+f3(ackermann_diff)+'</td><td class="unit">—</td></tr>'+
+    '<tr><td class="label">K/L（阿克曼理论值）</td><td class="form">K / L</td><td class="val">'+f3(ackermann_ideal)+'</td><td class="unit">—</td></tr>'+
+    '<tr><td class="label">转向盘需转圈数 N<sub>sw</sub>≈i<sub>w</sub>·2θ<sub>in</sub>/180°</td><td class="form">i<sub>w</sub>×2θ<sub>in</sub>/180</td><td class="val">'+f2(Nsw_from_angle)+'</td><td class="unit">圈</td></tr>';
+  var tb_el = document.getElementById('tb_angle_circ');
+  if(tb_el) tb_el.innerHTML = tb_ang;
+  var vd_el = document.getElementById('vd_angle_circ');
+  if(vd_el) vd_el.innerHTML = vd_(ackermann_ok,'✅','❌','转向轮偏转角：θ<sub>out</sub>='+f2(theta_out)+'° < θ<sub>in</sub>='+f2(theta_in)+'°'+(ackermann_ok?' 外轮偏角小于内轮，符合阿克曼转向几何 ✓':' 外轮偏角 ≥ 内轮，不满足阿克曼条件，请检查 Rmin 或轮距参数！'));
+}
+
+// ── RENDER STEP 1 ──
+function renderStep1(m, G1, gamma_deg, b_clear, D2, n_balls, R2){
+  var row=TABLE41[m]||TABLE41[5.0];
+  var html='<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>参数</th><th>符号</th><th>查表推荐范围</th><th>当前取值</th><th>单位</th></tr></thead><tbody>';
+  html+=tr5n('摇臂轴直径','d<sub>s</sub>',arr2str([row.arm]),'—','mm');
+  html+=tr5n('钢球中心距','D',arr2str(row.D),f1(P.D),'mm');
+  html+=tr5n('螺杆外径','D₁',arr2str(row.D1),f1(P.D1),'mm');
+  html+=tr5n('钢球直径','d',arr2str(row.d),f3(P.d),'mm');
+  html+=tr5n('螺距','P',arr2str(row.P),f1(P.Pp),'mm');
+  html+=tr5n('工作圈数','W',arr2str(row.W),f1(P.W),'圈');
+  html+=tr5n('螺母长度','L<sub>nut</sub>',arr2str(row.nut),'—','mm');
+  html+=tr5n('齿扇整圆齿数','z\'',arr2str(row.zf),P.zp,'');
+  html+=tr5n('齿扇宽度','b<sub>sec</sub>',arr2str(row.bs),P.bsec,'mm');
+  html+='</tbody></table></div>';
+  document.getElementById('table_lookup').innerHTML=html;
+
+  // Module selection table (Table 6-1)
+  var G1kN = G1/1000;
+  var html_m='<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>模数 m</th><th>乘用车前轴负荷/N</th><th>货车前轴负荷/N</th><th>推荐</th></tr></thead><tbody>';
+  var mods=[3.0,3.5,4.0,4.5,5.0,6.0,6.5];
+  mods.forEach(function(mv){
+    var car=MODULE_G1_CAR[mv]?MODULE_G1_CAR[mv][0]+'~'+MODULE_G1_CAR[mv][1]:'—';
+    var trk=MODULE_G1_TRUCK[mv]?MODULE_G1_TRUCK[mv][0]+'~'+MODULE_G1_TRUCK[mv][1]:'—';
+    var isSel=(P.m_sec===mv);
+    html_m+='<tr'+(isSel?' style="background:#fffde7"':'')+'>'+
+      '<td class="val">'+mv+' mm</td><td>'+car+'</td><td>'+trk+'</td>'+
+      '<td class="'+(isSel?'ok':'')+'">'+( isSel?'◀ 当前':'' )+'</td></tr>';
+  });
+  html_m+='</tbody></table></div>';
+  document.getElementById('module_table').innerHTML=html_m;
+
+  // Parameter checks
+  var ck=[];
+  var ok_b = b_clear>2.5;
+  var ok_D2D1 = (D2-P.D1)>=0.05*P.D && (D2-P.D1)<=0.10*P.D;
+  var ok_n = n_balls>0 && n_balls<=60;
+  var ok_R2 = R2>P.d/2;
+  ck.push(vd_(ok_b,'✅','❌','b = P − d = '+f2(b_clear)+' mm '+(ok_b?'> 2.5 mm ✓':'< 2.5 mm，螺距过小，须增大螺距或减小钢球直径')));
+  ck.push(vd_(ok_D2D1,'✅','⚠️','D₂ − D₁ = '+f2(D2-P.D1)+' mm = '+f1((D2-P.D1)/P.D*100)+'%D '+(ok_D2D1?'在(5%~10%)D范围 ✓':'建议调整，目标范围(5%~10%)D')));
+  ck.push(vd_(ok_n,'✅','⚠️','每路钢球数 n = '+n_balls+' '+(ok_n?'≤60粒 ✓':'应≤60粒，须减少圈数或缩小直径比')));
+  ck.push(vd_(ok_R2,'✅','❌','滚道半径 R₂ = '+f3(R2)+' mm '+(ok_R2?'> 钢球半径 r = '+f3(P.d/2)+' mm ✓':'设计错误，R₂必须大于钢球半径')));
+  document.getElementById('param_check').innerHTML=ck.join('');
+}
+
+// ── RENDER STEP 2 ──
+function renderStep2(iw, gamma_deg, rho_deg, eta_plus, eta_minus, r_sec, ip, M_out, Mh, G1, Fh_actual){
+  var html='<div class="proc"><h4>循环球式转向器角传动比推导</h4><div class="pg">';
+  html+=pr('转向盘转角 φ，螺母移距 s = Pφ/(2π)','s = P·φ/(2π)','pvt');
+  html+=pr('齿扇节圆弧长 = s，摇臂转角 β = s/r','β = s / r<sub>sec</sub>','pvo');
+  html+=pr('联立得 iw = dφ/dβ = 2π·r/P','','');
+  html+=pr('齿扇节圆半径 r = m·z\'/2','r = '+f1(r_sec)+' mm','pvt');
+  html+=pr('角传动比 iw = 2π·r / P','i<sub>w</sub> = '+f2(iw),'pvg');
+  html+=pr('螺线导程角 γ = arctan(P/(π·D))','γ = '+f2(gamma_deg)+'°','pvo');
+  html+='</div></div>';
+  document.getElementById('iw_calc').innerHTML=html;
+
+  var ok_gam = gamma_deg>=8&&gamma_deg<=10;
+  var ok_iw = iw>=15&&iw<=32;
+  var html2='<div class="proc"><h4>效率计算（η = f(γ, ρ)）</h4><div class="pg">';
+  html2+=pr('螺线摩擦角 ρ = arctan(μ)','ρ = '+f2(rho_deg)+'°','pvo');
+  html2+=pr('正效率 η⁺ = tanγ / tan(γ+ρ)','η⁺ = '+f1(eta_plus*100)+' %','pvg');
+  html2+=pr('逆效率 η⁻ = tan(γ−ρ) / tanγ','η⁻ = '+(eta_minus>0?f1(eta_minus*100)+' %':'0（不可逆）'),'pvo');
+  html2+=pr('导程角推荐范围','γ ∈ [8°, 10°]，当前 '+f2(gamma_deg)+'°', ok_gam?'pvg':'pvr');
+  html2+='</div></div>';
+  document.getElementById('eff_calc').innerHTML=html2;
+
+  var html3='';
+  html3+=vd_(ok_iw,'✅','⚠️','角传动比 iw = '+f2(iw)+(ok_iw?' ∈[15,32]范围合理 ✓':' 超出15~32建议范围，请检查齿扇参数'));
+  html3+=vd_(ok_gam,'✅','⚠️','螺线导程角 γ = '+f2(gamma_deg)+'°'+(ok_gam?' ∈[8°,10°]范围良好 ✓':' 不在8°~10°建议范围，影响效率'));
+  html3+=vd_(eta_minus>0,'✅','⚠️','逆效率 η⁻ = '+f1(eta_minus*100)+'%'+(eta_minus>0?' >0，可逆式，转向后能自动回正 ✓':' ≤0，不可逆式，转向轮无法自动回正！'));
+  html3+='<div class="alert info">📌 循环球式为可逆式转向器，逆效率较高（η⁻>0），路面冲击力部分传至转向盘（"打手"），大型车辆建议加装液压助力装置。当导程角α≤摩擦角ρ时，转向器变为不可逆式。</div>';
+  document.getElementById('iw_analysis').innerHTML=html3;
+
+  var html4='<div class="proc"><h4>操纵轻便性验证（式8-26）</h4><div class="pg">';
+  html4+=pr('力传动比 i<sub>p</sub> = (L₂/L₁)·i<sub>w</sub>·D<sub>sw</sub>·η₊ / (2a)','i<sub>p</sub> = '+f1(ip),'pvt');
+  html4+=pr('计算转向盘手力 F<sub>h</sub>（式8-26）','F<sub>h</sub> = '+f1(Fh_actual)+' N',Fh_actual<=P.Fhand?'pvg':'pvr');
+  html4+=pr('设计手力限值 F<sub>h_lim</sub>','≤ '+P.Fhand+' N','pvo');
+  html4+='<div class="sep"></div>';
+  html4+=pr('ip越大，转向越轻；但灵敏度降低（路感变差）','','');
+  html4+=pr('商用车建议 i<sub>p</sub> 范围','约 100~200','');
+  html4+='</div></div>';
+  document.getElementById('force_ratio').innerHTML=html4;
+}
+
+// ── RENDER STEP 3 ──
+function renderStep3(n_balls, N_total, n_loaded, D2, R2, L_total, L_screw, S_oneway, gamma_deg, b_clear, R_screw, A_k, B_k, AB_ratio){
+  var gamma_rad=Math.atan(P.Pp/(Math.PI*P.D));
+  var html='<div class="proc"><h4>钢球数量 & 螺母内径计算</h4><div class="pg">';
+  html+=pr('n = π·D·W·cosγ / d（每路，式4-1）','n = '+n_balls+' 粒/路','pvt');
+  html+=pr('循环路数 N<sub>c</sub>',''+P.Ncirc+' 路','pvo');
+  html+=pr('总钢球数 N = n × N<sub>c</sub>','N = '+N_total+' 粒','pvg');
+  html+=pr('参与工作比例 η<sub>n</sub> = W/(W+0.5)（建议值）','η<sub>n</sub> = '+f2(P.neff_ratio)+'（'+Math.round(P.neff_ratio*100)+'%，可手动覆盖）','');
+  html+=pr('参与工作钢球数 n<sub>eff</sub> = η<sub>n</sub> × N','n<sub>eff</sub> = '+f1(n_loaded)+' 粒','pvo');
+  html+=pr('螺母内径 D₂ = D₁ + (7.5%)D','D₂ ≈ '+f2(D2)+' mm，取 '+f1(Math.round(D2*2)/2)+' mm','pvo');
+  html+=pr('钢球间距余量 b = P − d','b = '+f2(b_clear)+' mm '+(b_clear>2.5?'> 2.5mm ✓':'× 须调整'),'pvg');
+  html+=pr('接触角 β',''+P.beta_c+'°（一般45°）');
+  html+='</div></div>';
+  document.getElementById('screw_params').innerHTML=html;
+
+  var Nsw_eff = Math.max(2.0, L_total/P.Pp);
+  var ok_Lscrew = L_screw <= 160;
+  var html2='<div class="proc"><h4>螺母移动距离 & 螺杆有效长度（式4-5）</h4><div class="pg">';
+  html2+=pr('转向盘需转圈数 N<sub>sw</sub>（由转向角推算）','≈ '+f2(Nsw_eff)+' 圈','pvt');
+  html2+=pr('螺母单侧移动量 S = (N<sub>sw</sub>/2)·P','S = '+f1(S_oneway)+' mm','pvt');
+  html2+=pr('螺母总移动距离 L\' = N<sub>sw</sub>·P = 2S','L\' = '+f1(L_total)+' mm','pvg');
+  html2+='<div class="sep"></div>';
+  html2+=pr('端部余量 (0.5~0.75)d 每端','≈ '+f2(0.625*P.d)+' mm/端','pvo');
+  html2+=pr('端距保证 5.5 mm 每端','= 5.5 mm/端','');
+  html2+=pr('螺杆有效工作长度 L ≥','L = L\' + 2×max(0.625d, 5.5) = '+f1(L_screw)+' mm','pvg');
+  html2+=pr('取整后','L = '+Math.ceil(L_screw)+' mm 推荐','pvg');
+  html2+='</div></div>';
+  html2+=vd_(ok_Lscrew,'✅','⚠️','螺杆有效工作长度 L = '+f1(L_screw)+' mm'+(ok_Lscrew?' ≤ 160mm 合理 ✓':' 偏长，建议减小转向盘转圈数或缩短螺距'));
+  document.getElementById('screw_length').innerHTML=html2;
+
+  var html3='<div class="proc"><h4>滚道截面参数（四段圆弧截面）</h4><div class="pg">';
+  html3+=pr('滚道截面采用四段圆弧，与钢球四点接触','','');
+  html3+=pr('滚道半径 R₂ = (0.51~0.53)d','R₂ = '+f3(R2)+' mm','pvt');
+  html3+=pr('钢球半径 r = d/2','r = '+f3(P.d/2)+' mm','pvo');
+  html3+=pr('螺杆外半径 R<sub>screw</sub> = D₁/2','R<sub>screw</sub> = '+f3(R_screw)+' mm','');
+  html3+=pr('A = (1/r − 1/R₂)/2','A = '+f4(A_k)+' mm⁻¹','pvt');
+  html3+=pr('B = (1/r + 1/R<sub>screw</sub>)/2','B = '+f4(B_k)+' mm⁻¹','pvo');
+  html3+=pr('A/B 比值（查表8-3 k系数）','A/B = '+f3(AB_ratio),'pvg');
+  html3+=pr('接触角 β（钢球与螺杆滚道）','β = '+P.beta_c+'°','pvg');
+  html3+=pr('螺线导程角 γ',''+f2(gamma_deg)+'°','pvo');
+  html3+='</div></div>';
+  document.getElementById('raceway_params').innerHTML=html3;
+}
+
+// ── RENDER STEP 4 ──
+function renderStep4(m, d_sec, ha, hf, h_tooth, s_tooth, Fa, sigma_w, sigma_w_allow, F2, F3_per, n_loaded, N_total, K_hertz, sigma_H, sigma_H_allow, AB_ratio, R2, R_screw, A_k, B_k, Ds_sp, Db_sp, Dei_sp, Dee_sp, Die_sp, Dm_sp, hk_sp, sigma_sp_bend, sigma_sp_allow, G1, M_out, d_arm){
+  var html='<div class="proc"><h4>变厚齿扇几何参数（中间截面 A-A 基准）</h4><div class="pg">';
+  html+=pr('模数 m / 法向压力角 α',''+m+' mm / '+P.alpha+'°','pvt');
+  html+=pr('整圆齿数 z\' / 实际齿扇齿数 z',''+P.zp+' / '+P.z,'pvo');
+  html+=pr('分度圆直径 d = m·z\'','d = '+f1(d_sec)+' mm','pvg');
+  html+=pr('分度圆处齿厚 s ≈ πm/2（近似基圆齿厚）','s = '+f3(s_tooth)+' mm','pvg');
+  html+=pr('齿顶高 ha = X₁·m','ha = '+f2(ha)+' mm','');
+  html+=pr('齿根高 hf = (X₁+0.20)·m （c=0.20）','hf = '+f2(hf)+' mm','');
+  html+=pr('齿高 h = ha + hf','h = '+f2(h_tooth)+' mm','pvt');
+  html+=pr('齿顶圆直径 da = d + 2ha','da = '+f1(d_sec+2*ha)+' mm','');
+  html+=pr('齿根圆直径 df = d − 2hf','df = '+f1(d_sec-2*hf)+' mm','');
+  html+=pr('齿扇宽度 B','B = '+P.bsec+' mm','pvt');
+  html+='</div></div>';
+  document.getElementById('sector_geom').innerHTML=html;
+
+  var ok_sw = sigma_w<=sigma_w_allow;
+  var html2='<div class="proc"><h4>齿扇弯曲应力校核（式8-32）</h4><div class="pg">';
+  html2+=pr('转向器输出力矩 M = M₀/(L₂/L₁)','M = '+f1(M_out/1000)+' N·m','pvt');
+  html2+=pr('齿扇圆周力 F = 2M / d（式8-32中 F）','F = '+f0(Fa)+' N','pvg');
+  html2+=pr('齿扇齿高 h = ha + hf','h = '+f2(h_tooth)+' mm','pvo');
+  html2+=pr('齿扇宽度 B（设计输入）','B = '+P.bsec+' mm','');
+  html2+=pr('分度圆处齿厚 s ≈ πm/2','s = '+f3(s_tooth)+' mm','pvo');
+  html2+=pr('弯曲应力 σw = 6F·h / (B·s²)（式8-32）','σw = '+f1(sigma_w)+' MPa','pvt');
+  html2+=pr('许用弯曲应力 [σw]（20CrMnTi，渗碳淬火）','[σw] = '+sigma_w_allow+' MPa','');
+  html2+='</div></div>';
+  html2+=vd_(ok_sw,'✅','❌','齿扇弯曲应力 σw = '+f1(sigma_w)+' MPa '+(ok_sw?'≤ [σw] = '+sigma_w_allow+' MPa ✓':'> [σw]，弯曲强度不足！须增大模数、宽度或调整材料'));
+  document.getElementById('sector_stress').innerHTML=html2;
+
+  var ok_sH = sigma_H<=sigma_H_allow;
+  var gamma_rad=Math.atan(P.Pp/(Math.PI*P.D));
+  var beta_c_rad=P.beta_c*Math.PI/180;
+  var r_ball=P.d/2;
+  var html3='<div class="proc"><h4>螺杆轴向力 & 钢球接触应力校核（式8-30~8-31）</h4><div class="pg">';
+  html3+=pr('螺杆轴向力 F₂ = 2M / d（分度圆直径 d = m·z\'）','F₂ = '+f0(F2)+' N','pvt');
+  html3+=pr('总钢球数 N','N = '+N_total+' 粒','');
+  html3+=pr('参与工作比例 η<sub>n</sub> = '+Math.round(P.neff_ratio*100)+'%','n<sub>eff</sub> = η<sub>n</sub>×N = '+f1(n_loaded)+' 粒','pvo');
+  html3+=pr('钢球正压力 F₃ = F₂/(n<sub>eff</sub>·cosβ·cosγ)（式8-31）','F₃ ≈ '+f0(F3_per)+' N/球','pvg');
+  html3+='<div class="sep"></div>';
+  html3+=pr('k系数查表8-3：依据 A/B 值','','');
+  html3+=pr('A = (1/r − 1/R₂)/2','A = '+f4(A_k)+' mm⁻¹','');
+  html3+=pr('B = (1/r + 1/R<sub>screw</sub>)/2','B = '+f4(B_k)+' mm⁻¹','');
+  html3+=pr('A/B 比值（查表8-3）','A/B = '+f3(AB_ratio),'pvo');
+  html3+=pr('k系数（由表8-3插值）','k = '+f3(K_hertz),'pvt');
+  html3+=pr('弹性模量 E = 2.1×10⁵ MPa（钢）','','');
+  html3+=pr('接触应力 σ = k·∛(6F₃E²/π³r²)（式8-30）','σ ≈ '+f1(sigma_H)+' MPa','pvg');
+  html3+=pr('许用接触应力 [σH]（HRC58~64）','[σH] = '+sigma_H_allow+' MPa','');
+  html3+='</div></div>';
+  html3+=vd_(ok_sH,'✅','⚠️','接触应力 σ ≈ '+f1(sigma_H)+' MPa '+(ok_sH?'≤ [σH] = '+sigma_H_allow+' MPa ✓':' 接触强度不足！须增大钢球直径或增加钢球数'));
+
+  // 表8-3 完整内容
+  html3+='<div class="sec-ttl">📋 表8-3 k系数表（依据 A/B 值）</div>';
+  html3+='<div class="alert info">A = (1/r − 1/R₂)/2，B = (1/r + 1/R<sub>screw</sub>)/2；<br>R₂为滚道截面半径，r为钢球半径，R<sub>screw</sub>为螺杆外半径；E为材料弹性模量，取 2.1×10⁵ MPa</div>';
+  html3+='<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>A/B</th><th>0.00</th><th>0.10</th><th>0.20</th><th>0.30</th><th>0.40</th><th>0.50</th><th>0.60</th><th>0.70</th><th>0.75</th><th>0.80</th><th>0.85</th><th>0.90</th><th>0.95</th><th>1.00</th></tr></thead><tbody>';
+  var kTab=[0.388,0.399,0.411,0.427,0.446,0.470,0.497,0.530,0.548,0.567,0.590,0.621,0.659,0.717];
+  var abKeys=[0.00,0.10,0.20,0.30,0.40,0.50,0.60,0.70,0.75,0.80,0.85,0.90,0.95,1.00];
+  html3+='<tr><td class="label">k</td>';
+  kTab.forEach(function(v,i){
+    var isClose = Math.abs(abKeys[i]-AB_ratio)<0.06;
+    html3+='<td class="'+(isClose?'val ok':'val')+'">'+v.toFixed(3)+'</td>';
+  });
+  html3+='</tr></tbody></table></div>';
+  document.getElementById('ball_force').innerHTML=html3;
+
+  // Spline calculation
+  var ok_sp = sigma_sp_bend<=sigma_sp_allow;
+  var html4='<div class="proc"><h4>渐开线花键几何参数（压力角45°）</h4><div class="pg">';
+  html4+=pr('花键模数 m<sub>s</sub> / 齿数 Z<sub>s</sub>',''+P.ms+' mm / '+P.Zs+'','pvt');
+  html4+=pr('分度圆直径 D = m<sub>s</sub>·Z<sub>s</sub>','D = '+f2(Ds_sp)+' mm','pvg');
+  html4+=pr('基圆直径 Db = m<sub>s</sub>·Z<sub>s</sub>·cos45°','Db = '+f2(Db_sp)+' mm','pvo');
+  html4+=pr('内花键大径 Dei = m<sub>s</sub>(Z<sub>s</sub>+1.2)','Dei = '+f2(Dei_sp)+' mm','');
+  html4+=pr('外花键大径 Dee = m<sub>s</sub>(Z<sub>s</sub>+0.8)','Dee = '+f2(Dee_sp)+' mm','');
+  html4+=pr('外花键小径 Die = m<sub>s</sub>(Z<sub>s</sub>-1.2)','Die = '+f2(Die_sp)+' mm','');
+  html4+=pr('周节 t = π·m<sub>s</sub>','t = '+f3(Math.PI*P.ms)+' mm','');
+  html4+='<div class="sep"></div>';
+  html4+=pr('花键工作高度 h<sub>k</sub> = m<sub>s</sub>','h<sub>k</sub> = '+f2(hk_sp)+' mm','pvt');
+  html4+=pr('平均直径 D<sub>m</sub> = (D+Die)/2','D<sub>m</sub> = '+f2(Dm_sp)+' mm','pvo');
+  html4+=pr('弯曲应力 σ = 6M/(Z<sub>s</sub>·D<sub>m</sub>·h<sub>k</sub>·L<sub>s</sub>)','σ = '+f1(sigma_sp_bend)+' MPa','pvg');
+  html4+=pr('传递力矩 M = M₀/(L₂/L₁)（转向器输出）','M = '+f1(M_out/1000)+' N·m','pvt');
+  html4+=pr('许用弯曲应力 [σ]（花键，20CrMnTi）','[σ] = '+sigma_sp_allow+' MPa','');
+  html4+='</div></div>';
+  html4+=vd_(ok_sp,'✅','❌','渐开线花键弯曲应力 σ = '+f1(sigma_sp_bend)+' MPa '+(ok_sp?'≤ [σ] = '+sigma_sp_allow+' MPa，花键强度满足要求 ✓':'> [σ]，花键强度不足！须增大模数或齿数'));
+  document.getElementById('spline_calc').innerHTML=html4;
+
+  // 转向摇臂轴直径（式8-33）
+  var M0_arm = M_out * P.L2L1;  // M0 = M_out*(L2/L1) [N·mm]
+  var html5='<div class="proc"><h4>摇臂轴最小直径计算（式8-33）</h4><div class="pg">';
+  html5+=pr('式(8-33)：d = ∛[ K·M<sub>R</sub> / (0.2·τ₀) ]（M<sub>R</sub>为原地转向阻力矩）','','');
+  html5+=pr('原地转向阻力矩 M<sub>R</sub>（由式8-25 引用）','M<sub>R</sub> = '+f1(M0_arm/1000)+' N·m','pvt');
+  html5+=pr('安全系数 K','K = '+f2(P.K_arm),'pvo');
+  html5+=pr('扭转强度极限 τ₀','τ₀ = '+P.tau0_arm+' MPa','pvo');
+  html5+=pr('最小摇臂轴直径 d','d = '+f2(d_arm)+' mm','pvg');
+  html5+=pr('取整后建议值','d = '+Math.ceil(d_arm/2)*2+' mm（取偶数整mm）','');
+  html5+='</div></div>';
+  html5+='<div class="alert info">📌 摇臂轴用 20CrMnTi 渗碳淬火：对前轴负荷不大的汽车渗碳深度 0.8~1.2mm；前轴负荷大时 1.05~1.45mm；表面硬度 58~63HRC。参见表8-1。</div>';
+  document.getElementById('arm_shaft_calc').innerHTML=html5;
+}
+
+// ── RENDER SUMMARY ──
+function renderSummary(G1,M0,M_out,Fh_actual,iw,gamma_deg,eta_plus,eta_minus,n_balls,N_total,n_loaded,L_screw,sigma_w,sigma_w_allow,sigma_H,sigma_H_allow,D2,b_clear,m,d_sec,ha,hf,h_tooth,Fa,F2,F3_per,K_hertz,r_sec,R2,AB_ratio,A_k,B_k){
+  var ok_sw=sigma_w<=sigma_w_allow, ok_sH=sigma_H<=sigma_H_allow;
+  var ok_iw=iw>=14&&iw<=32, ok_gam=gamma_deg>=8&&gamma_deg<=10;
+  var ok_b=b_clear>2.5, ok_etam=eta_minus>0;
+  var limit_val=(P.ma>=3000)?250:100;
+  var ok_Fh=Fh_actual<=limit_val;
+  var allOk=ok_sw&&ok_sH&&ok_iw&&ok_b&&ok_etam&&ok_Fh;
+
+  var html='<div class="rgrid">';
+  html+=rc_('前轴负荷 G₁','hi',f0(G1),'N');
+  html+=rc_('原地阻力矩 M₀','hi',f1(M0/1000),'N·m');
+  html+=rc_('输出力矩 M=M₀/(L₂/L₁)','hi',f1(M_out/1000),'N·m');
+  html+=rc_('计算手力 F<sub>h</sub>（式8-26）',ok_Fh?'ok':'bad',f1(Fh_actual),'N');
+  html+=rc_('角传动比 i<sub>w</sub>',ok_iw?'ok':'bad',f2(iw),'');
+  html+=rc_('导程角 γ',ok_gam?'ok':'bad',f2(gamma_deg),'°');
+  html+=rc_('正效率 η⁺','ok',f1(eta_plus*100),'%');
+  html+=rc_('逆效率 η⁻',ok_etam?'ok':'bad',(eta_minus>0?f1(eta_minus*100):'0'),'%');
+  html+=rc_('每路钢球数 n / 总数 N','hi',n_balls+' / '+N_total,'粒');
+  html+=rc_('钢球间距 b',ok_b?'ok':'bad',f2(b_clear),'mm');
+  html+=rc_('螺杆有效长度','hi',f1(L_screw),'mm');
+  html+=rc_('齿扇弯曲应力',ok_sw?'ok':'bad',f1(sigma_w),'MPa');
+  html+=rc_('钢球接触应力',ok_sH?'ok':'bad',f1(sigma_H),'MPa');
+  html+='</div>';
+  document.getElementById('summary_grid').innerHTML=html;
+
+  var vlist=[
+    vd_(ok_Fh,'✅','❌','计算手力 F<sub>h</sub> = '+f1(Fh_actual)+' N（式8-26）'+(ok_Fh?' ≤ '+limit_val+' N ✓':' 超出标准！须调整 i<sub>w</sub>、D<sub>sw</sub> 或 L₂/L₁')),
+    vd_(ok_b,'✅','❌','钢球间距余量 b = P−d = '+f2(b_clear)+' mm'+(ok_b?' > 2.5mm ✓':' < 2.5mm，需调整！')),
+    vd_(ok_iw,'✅','⚠️','角传动比 iw = '+f2(iw)+(ok_iw?' 在合理范围[14~32] ✓':' 超出合理范围')),
+    vd_(ok_gam,'✅','⚠️','螺线导程角 γ = '+f2(gamma_deg)+'°'+(ok_gam?' ∈[8°~10°] ✓':' 不在推荐范围')),
+    vd_(ok_etam,'✅','⚠️','逆效率 η⁻ = '+f1(eta_minus*100)+'%'+(ok_etam?' > 0，可逆式，能自动回正 ✓':' ≤0，不可逆！')),
+    vd_(ok_sw,'✅','❌','齿扇弯曲应力 σw = '+f1(sigma_w)+' / [σw] = '+sigma_w_allow+' MPa'+(ok_sw?' ✓':' 强度不足！')),
+    vd_(ok_sH,'✅','⚠️','接触应力 σH ≈ '+f1(sigma_H)+' / [σH] = '+sigma_H_allow+' MPa'+(ok_sH?' ✓':' 接触强度不足'))
+  ];
+  document.getElementById('final_verdict').innerHTML=vlist.join('')+
+    (allOk?'<div class="verdict pass"><div class="vi">🏆</div><div class="vt">综合校核通过！各项指标均满足设计要求。</div></div>':
+    '<div class="verdict warn"><div class="vi">⚠️</div><div class="vt">存在不满足条件的项目，请按上述提示调整参数后重新校核。</div></div>');
+
+  // Full parameter table
+  var gamma_rad=Math.atan(P.Pp/(Math.PI*P.D));
+  var ip_corr = P.L2L1*iw*P.Dsw*P.eta_p/(2*P.a_off);
+  var ft='<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>参数名称</th><th>符号</th><th>计算公式/来源</th><th>数值</th><th>单位</th></tr></thead><tbody>';
+  ft+=tr5('汽车满载质量','m<sub>a</sub>','设计输入',P.ma,'kg');
+  ft+=tr5('前轴负荷率','α<sub>f</sub>','设计输入',P.af,'—');
+  ft+=tr5('前轴负荷','G₁','m<sub>a</sub>×α<sub>f</sub>×9.8',f0(G1),'N');
+  ft+=tr5('原地转向阻力矩','M<sub>R</sub>','(f/3)·√(G₁³/p)（式8-25）',f1(M0/1000),'N·m');
+  ft+=tr5('转向器输出力矩（摇臂轴）','M','M₀/(L₂/L₁)（由式8-26推导）',f1(M_out/1000),'N·m');
+  ft+=tr5('转向盘手力（计算值）','F<sub>h</sub>','2M₀/[(L₂/L₁)·D<sub>sw</sub>·i<sub>w</sub>·η₊]（式8-26）',f1(Fh_actual),'N');
+  ft+=tr5('力传动比','i<sub>p</sub>','(L₂/L₁)·i<sub>w</sub>·D<sub>sw</sub>·η₊/(2a)',f1(ip_corr),'—');
+  ft+=tr5('齿扇模数','m','查表8-2',m,'mm');
+  ft+=tr5('钢球中心距','D','查表8-1',f1(P.D),'mm');
+  ft+=tr5('螺杆外径','D₁','查表8-1',f1(P.D1),'mm');
+  ft+=tr5('螺母内径','D₂','D₁+(5%~10%)D',f2(D2),'mm');
+  ft+=tr5('钢球直径','d','查表8-1',f3(P.d),'mm');
+  ft+=tr5('螺距','P','查表8-1',f1(P.Pp),'mm');
+  ft+=tr5('工作圈数','W','查表8-1',P.W,'圈');
+  ft+=tr5('环流路数','N<sub>c</sub>','设计选取',P.Ncirc,'路');
+  ft+=tr5('钢球间距余量','b','P − d ≥ 2.5mm',f2(b_clear),'mm');
+  ft+=tr5('滚道截面半径','R₂','(0.51~0.53)d',f3(0.52*P.d),'mm');
+  ft+=tr5('每路钢球数','n','π·D·W·cosγ/d（式8-29）',n_balls,'粒');
+  ft+=tr5('总钢球数 N','N','n × N<sub>c</sub>（路数）',N_total,'粒');
+  ft+=tr5('参与工作比例','η<sub>n</sub>','设计输入（按工作圈数设定）',f2(P.neff_ratio),'—');
+  ft+=tr5('参与工作钢球数','n<sub>eff</sub>','η<sub>n</sub>×N',f1(n_loaded),'粒');
+  ft+=tr5('螺线导程角','γ','arctan(P/πD)',f2(gamma_deg),'°');
+  ft+=tr5('齿扇节圆半径','r','m·z\'/2',f1(r_sec),'mm');
+  ft+=tr5('角传动比','i<sub>w</sub>','2π·r/P（由齿扇几何）',f2(iw),'—');
+  ft+=tr5('正效率','η⁺','tanγ/tan(γ+ρ)',f1(eta_plus*100),'%');
+  ft+=tr5('逆效率','η⁻','tan(γ−ρ)/tanγ',f1(eta_minus*100),'%');
+  ft+=tr5('螺杆有效工作长度','L','N<sub>sw</sub>·P+端部余量',f1(L_screw),'mm');
+  ft+=tr5('齿顶高','ha','X₁·m',f2(ha),'mm');
+  ft+=tr5('齿根高','hf','(X₁+0.20)·m',f2(hf),'mm');
+  ft+=tr5('齿高','h','ha+hf',f2(h_tooth),'mm');
+  ft+=tr5('圆周力','Fa','2M/d<sub>sec</sub>',f0(Fa),'N');
+  ft+=tr5('螺杆轴向力','F₂','≈ Fa',f0(F2),'N');
+  ft+=tr5('单球正压力','F₃','F₂/(n<sub>eff</sub>·cosβ·cosγ)',f0(F3_per),'N');
+  ft+=tr5('K系数','k','查表8-3（依据A/B值）',f3(K_hertz),'—');
+  ft+=tr5('齿扇弯曲应力','σ<sub>w</sub>','Fa·h/(b·s²/6)',f1(sigma_w),'MPa');
+  ft+=tr5('钢球接触应力','σ<sub>H</sub>','K·∛(6F₃E²/π³r²)',f1(sigma_H),'MPa');
+  ft+='</tbody></table></div>';
+  document.getElementById('full_table').innerHTML=ft;
+}
+
+// ── DIAGRAM ──
+function drawDiagram(){
+  var cv=document.getElementById('diagCanvas');
+  if(!cv) return;
+  var ctx=cv.getContext('2d');
+  var W=cv.width, H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#f8fafc';
+  ctx.fillRect(0,0,W,H);
+
+  var m=P.m_sec||5;
+  var gamma_rad=Math.atan(P.Pp/(Math.PI*P.D));
+  var r_sec=m*P.zp/2;
+  var iw=2*Math.PI*r_sec/P.Pp;
+  var G1_diag=P.ma*P.af*9.8;
+  var M0_diag=(P.f_mu/3)*Math.sqrt(Math.pow(G1_diag,3)/P.p_tire);
+
+  // Title
+  ctx.fillStyle='#1a5fa8';
+  ctx.font='bold 14px Microsoft YaHei,sans-serif';
+  ctx.fillText('循环球式转向器结构示意图',16,22);
+
+  // Steering column (input)
+  var cx=180, cy=H/2+10;
+  ctx.strokeStyle='#8fa3b5'; ctx.lineWidth=1.5; ctx.setLineDash([5,3]);
+  ctx.beginPath(); ctx.moveTo(cx-160,cy); ctx.lineTo(cx-70,cy); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#1a5fa8'; ctx.font='11px Microsoft YaHei,sans-serif';
+  ctx.fillText('转向盘输入',cx-155,cy-8);
+
+  // Screw body
+  var screwL=150, screwR=P.D1/2*0.8;
+  if(screwR>18) screwR=18; if(screwR<8) screwR=8;
+  ctx.fillStyle='#d0e8ff'; ctx.strokeStyle='#2e7dd1'; ctx.lineWidth=2;
+  roundRect(ctx, cx-screwL/2, cy-screwR, screwL, screwR*2, 5);
+  ctx.fill(); ctx.stroke();
+
+  // Helical thread on screw
+  ctx.strokeStyle='#1a5fa8'; ctx.lineWidth=1;
+  var stepH=P.Pp*2;
+  for(var x=cx-screwL/2+stepH/2; x<cx+screwL/2; x+=stepH){
+    ctx.beginPath();
+    ctx.moveTo(x-4,cy-screwR); ctx.lineTo(x+4,cy+screwR); ctx.stroke();
+  }
+
+  // Nut (螺母/齿条)
+  var nutH=P.D*0.8; if(nutH>55) nutH=55; if(nutH<30) nutH=30;
+  var nutW=75;
+  ctx.fillStyle='#b8d8f8'; ctx.strokeStyle='#1a5fa8'; ctx.lineWidth=2;
+  roundRect(ctx, cx-nutW/2, cy-nutH/2, nutW, nutH, 4);
+  ctx.fill(); ctx.stroke();
+
+  // Balls inside nut
+  ctx.fillStyle='rgba(255,255,255,0.85)'; ctx.strokeStyle='#4a9eff'; ctx.lineWidth=1;
+  var bR=Math.min(P.d/2*0.85,6);
+  for(var i=0;i<Math.min(7,Math.round(nutW/bR/2.5));i++){
+    var bx2=cx-nutW/2+8+(i*(nutW-16)/6);
+    ctx.beginPath(); ctx.arc(bx2,cy,bR,0,2*Math.PI); ctx.fill(); ctx.stroke();
+  }
+  ctx.fillStyle='#4a9eff'; ctx.font='10px Microsoft YaHei,sans-serif';
+  ctx.fillText('循环钢球',cx-14,cy-nutH/2-4);
+
+  // Rack teeth on bottom of nut
+  var toothW=7, toothH=6, nTeeth=6;
+  var txStart=cx-nTeeth*toothW/2;
+  for(var i=0;i<nTeeth;i++){
+    ctx.fillStyle='#1a5fa8';
+    ctx.beginPath(); ctx.rect(txStart+i*toothW+1,cy+nutH/2,toothW-2,toothH); ctx.fill();
+  }
+  ctx.fillStyle='#374a5c'; ctx.font='11px Microsoft YaHei,sans-serif';
+  ctx.fillText('螺母（齿条端）',cx-36,cy+nutH/2+18);
+
+  // Sector gear
+  var secR=r_sec*0.55; if(secR>85) secR=85; if(secR<28) secR=28;
+  var secCx=cx, secCy=cy+nutH/2+toothH+secR+4;
+  ctx.fillStyle='#fdf3e6'; ctx.strokeStyle='#c55a11'; ctx.lineWidth=2;
+  var secAngle=Math.PI*0.6;
+  ctx.beginPath();
+  ctx.arc(secCx, secCy, secR, -Math.PI/2-secAngle/2, -Math.PI/2+secAngle/2);
+  ctx.lineTo(secCx, secCy); ctx.closePath(); ctx.fill(); ctx.stroke();
+  // Teeth on sector
+  ctx.fillStyle='#c55a11';
+  for(var i=0;i<P.z;i++){
+    var ang=-Math.PI/2-secAngle/2+secAngle*i/(P.z-1);
+    var tx2=secCx+Math.cos(ang)*(secR+3), ty2=secCy+Math.sin(ang)*(secR+3);
+    ctx.beginPath(); ctx.arc(tx2,ty2,3.5,0,2*Math.PI); ctx.fill();
+  }
+  // Sector shaft
+  ctx.fillStyle='#e0e8f0'; ctx.strokeStyle='#555'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.arc(secCx,secCy,9,0,2*Math.PI); ctx.fill(); ctx.stroke();
+
+  // Labels
+  ctx.fillStyle='#1a5fa8'; ctx.font='bold 11px Microsoft YaHei,sans-serif';
+  ctx.fillText('螺杆（转向轴输入）',cx-screwL/2+2,cy-screwR-6);
+  ctx.fillStyle='#c55a11';
+  ctx.fillText('变厚齿扇（摇臂轴输出）',secCx+secR+6,secCy+4);
+
+  // Output arrow
+  ctx.strokeStyle='#c55a11'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(secCx+secR+4,secCy); ctx.lineTo(secCx+secR+28,secCy); ctx.stroke();
+  drawArrow(ctx,secCx+secR+28,secCy,secCx+secR+4,secCy,'#c55a11');
+
+  // Input arrow
+  ctx.strokeStyle='#1a5fa8'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(cx-screwL/2-30,cy); ctx.lineTo(cx-screwL/2,cy); ctx.stroke();
+  drawArrow(ctx,cx-screwL/2,cy,cx-screwL/2-30,cy,'#1a5fa8');
+
+  // Parameter box
+  var bx3=370, by3=25;
+  ctx.fillStyle='rgba(26,95,168,0.06)'; ctx.strokeStyle='#1a5fa8'; ctx.lineWidth=1.5;
+  roundRect(ctx,bx3,by3,175,310,8); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#1a5fa8'; ctx.font='bold 13px Microsoft YaHei,sans-serif';
+  ctx.fillText('主要设计参数',bx3+12,by3+20);
+  ctx.font='12px Microsoft YaHei,sans-serif';
+  var params2=[
+    ['模数 m', m+' mm'],
+    ['钢球中心距 D', f1(P.D)+' mm'],
+    ['螺杆外径 D₁', f1(P.D1)+' mm'],
+    ['钢球直径 d', f3(P.d)+' mm'],
+    ['螺距 P', f1(P.Pp)+' mm'],
+    ['工作圈数 W', P.W+'圈 × '+P.Ncirc+'路'],
+    ['导程角 γ', f2(gamma_rad*180/Math.PI)+'°'],
+    ['角传动比 iw', f2(iw)],
+    ['齿扇整圆齿数', P.zp],
+    ['齿扇宽度', P.bsec+' mm'],
+    ['输出力矩 M', f1(M0_diag/P.L2L1/1000)+' N·m'],
+  ];
+  for(var i=0;i<params2.length;i++){
+    ctx.fillStyle='#374a5c'; ctx.font='12px Microsoft YaHei,sans-serif';
+    ctx.fillText(params2[i][0],bx3+10,by3+40+i*25);
+    ctx.fillStyle='#1a5fa8'; ctx.font='bold 12px Microsoft YaHei,sans-serif';
+    ctx.fillText(params2[i][1],bx3+130,by3+40+i*25);
+  }
+}
+
+function drawArrow(ctx,x,y,fx,fy,color){
+  var ang=Math.atan2(y-fy,x-fx);
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.moveTo(x,y);
+  ctx.lineTo(x-10*Math.cos(ang-0.35),y-10*Math.sin(ang-0.35));
+  ctx.lineTo(x-10*Math.cos(ang+0.35),y-10*Math.sin(ang+0.35));
+  ctx.closePath(); ctx.fill();
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  r=Math.min(r,w/2,h/2);
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+// ── renderStep5: 助力减速机构 ──
+function renderStep5(M0, T_sw_EPS, T_motor_min, z2w, d2w, aw, gamma_w_deg, da1w, df1w, b1w, da2w, df2w, b2w, T2w, Ft2w, K_w, zeq_w, Y_Fw, sig_H_w, sig_F_w, worm_H_ok, worm_F_ok){
+  var p=P;
+  var mc=document.getElementById('motor_check');
+  var wg=document.getElementById('worm_geom');
+  var wc=document.getElementById('worm_check');
+  if(mc) mc.innerHTML =
+    '<div class="alert info" style="margin-bottom:8px">式(3-20)：T<sub>motor</sub> = [ M<sub>R</sub>/(i<sub>w</sub>·η<sub>p</sub>) − M<sub>h_EPS</sub> ] / (i<sub>worm</sub>·η<sub>worm</sub>)<br>'+
+    'M<sub>R</sub> 为原地转向阻力矩（式8-25）；M<sub>h_EPS</sub> = F<sub>hand</sub>×D<sub>sw</sub>/2 为有助力时驾驶员最大转矩；i<sub>w</sub> 为实际角传动比（由齿扇几何计算）</div>'+
+    '<div style="overflow-x:auto"><table class="tbl"><tbody>'+
+    '<tr><td class="label">转向阻力矩 M<sub>R</sub>（式8-25）</td><td class="form">(f/3)·√(G₁³/p)</td><td class="val">'+M0.toFixed(1)+'</td><td class="unit">N·mm</td></tr>'+
+    '<tr><td class="label">转向器角传动比 i<sub>w</sub>（由齿扇计算）</td><td class="form">2πr/P（实际值）</td><td class="val">'+p.iw_req+'</td><td class="unit">—</td></tr>'+
+    '<tr><td class="label">转向器正效率 η<sub>p</sub></td><td class="form">输入值</td><td class="val">'+p.eta_p+'</td><td class="unit">—</td></tr>'+
+    '<tr><td class="label">有助力方向盘切向力 F<sub>hand</sub></td><td class="form">输入值</td><td class="val">'+p.F_hand+'</td><td class="unit">N</td></tr>'+
+    '<tr><td class="label">有助力方向盘最大转矩 M<sub>h_EPS</sub></td><td class="form">F<sub>hand</sub>×D<sub>sw</sub>/2</td><td class="val">'+T_sw_EPS.toFixed(1)+'</td><td class="unit">N·mm</td></tr>'+
+    '<tr><td class="label">蜗轮蜗杆传动比 i<sub>worm</sub></td><td class="form">输入值</td><td class="val">'+p.i_worm+'</td><td class="unit">—</td></tr>'+
+    '<tr><td class="label">蜗轮蜗杆传动效率 η<sub>worm</sub></td><td class="form">输入值</td><td class="val">'+p.eta_worm+'</td><td class="unit">—</td></tr>'+
+    '<tr><td class="label" style="color:var(--blue);font-weight:700">电机最小助力转矩 T<sub>motor</sub></td><td class="form" style="color:var(--blue)">(M₀/(i<sub>w</sub>η<sub>p</sub>)−M<sub>h_EPS</sub>)/(i<sub>worm</sub>·η<sub>worm</sub>)</td><td class="val" style="color:var(--blue);font-size:16px;font-weight:700">'+T_motor_min.toFixed(2)+'</td><td class="unit">N·mm</td></tr>'+
+    '</tbody></table></div>'+
+    (T_motor_min>0
+      ? '<div class="verdict pass"><div class="vi">✅</div><div class="vt">电机最小输出转矩 T<sub>motor</sub> = '+T_motor_min.toFixed(2)+' N·mm，选型时额定转矩应不低于此值。</div></div>'
+      : '<div class="verdict warn"><div class="vi">⚠️</div><div class="vt">计算结果为负值或零，说明驾驶员输入转矩已能克服转向阻力，无需额外助力。请检查 M₀、i<sub>w</sub>、η<sub>p</sub> 等参数。</div></div>');
+  if(wg) wg.innerHTML =
+    '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>参数</th><th>符号</th><th>公式</th><th>蜗杆</th><th>蜗轮</th><th>单位</th></tr></thead><tbody>'+
+    '<tr><td class="label">头数 / 齿数</td><td class="sym">z</td><td class="form">z₁w(输入) / z₂w=i·z₁w</td><td class="val">'+p.z1w+'</td><td class="val">'+z2w+'</td><td class="unit">—</td></tr>'+
+    '<tr><td class="label">轴向模数</td><td class="sym">m<sub>w</sub></td><td class="form">输入值</td><td class="val" colspan="2">'+p.mw+'</td><td class="unit">mm</td></tr>'+
+    '<tr><td class="label">分度圆直径</td><td class="sym">d</td><td class="form">d₁w(输入) / m<sub>w</sub>·z₂w</td><td class="val">'+p.d1w+'</td><td class="val">'+d2w.toFixed(2)+'</td><td class="unit">mm</td></tr>'+
+    '<tr><td class="label">中心距</td><td class="sym">a<sub>w</sub></td><td class="form">(d₁w+d₂w)/2</td><td class="val" colspan="2">'+aw.toFixed(2)+'</td><td class="unit">mm</td></tr>'+
+    '<tr><td class="label">导程角</td><td class="sym">γ</td><td class="form">arctan(z₁w·m<sub>w</sub>/d₁w)</td><td class="val" colspan="2">'+gamma_w_deg.toFixed(3)+'</td><td class="unit">°</td></tr>'+
+    '<tr><td class="label">齿顶高</td><td class="sym">h<sub>a</sub></td><td class="form">h<sub>a</sub>*·m<sub>w</sub></td><td class="val">'+( p.haw*p.mw).toFixed(3)+'</td><td class="val">'+( p.haw*p.mw).toFixed(3)+'</td><td class="unit">mm</td></tr>'+
+    '<tr><td class="label">齿根高</td><td class="sym">h<sub>f</sub></td><td class="form">(h<sub>a</sub>*+c*)·m<sub>w</sub>，c*=0.25</td><td class="val">'+((p.haw+0.25)*p.mw).toFixed(3)+'</td><td class="val">'+((p.haw+0.25)*p.mw).toFixed(3)+'</td><td class="unit">mm</td></tr>'+
+    '<tr><td class="label">齿顶圆直径</td><td class="sym">d<sub>a</sub></td><td class="form">d+2h<sub>a</sub></td><td class="val">'+da1w.toFixed(2)+'</td><td class="val">'+da2w.toFixed(2)+'（喉圆）</td><td class="unit">mm</td></tr>'+
+    '<tr><td class="label">齿根圆直径</td><td class="sym">d<sub>f</sub></td><td class="form">d−2h<sub>f</sub></td><td class="val">'+df1w.toFixed(2)+'</td><td class="val">'+df2w.toFixed(2)+'</td><td class="unit">mm</td></tr>'+
+    '<tr><td class="label">宽度（推荐）</td><td class="sym">b</td><td class="form">b₁≥(11+0.06z₂w)m<sub>w</sub>；b₂≤0.75d<sub>a1w</sub></td><td class="val">'+b1w.toFixed(1)+'</td><td class="val">'+b2w.toFixed(1)+'</td><td class="unit">mm</td></tr>'+
+    '<tr><td class="label">蜗轮当量齿数</td><td class="sym">z<sub>eq</sub></td><td class="form">z₂w/cos³γ</td><td class="val" colspan="2">'+zeq_w.toFixed(1)+'</td><td class="unit">—</td></tr>'+
+    '</tbody></table></div>';
+  if(wc) wc.innerHTML =
+    '<div class="sec-ttl">蜗轮接触疲劳强度（式3-21）</div>'+
+    '<div class="alert info" style="margin-bottom:8px">式(3-21)：σ<sub>H</sub> = Z<sub>E</sub>·√[ K·F<sub>t2</sub> / (b₂·d<sub>1w</sub>) ]<br>'+
+    '其中 Z<sub>E</sub>=160 √MPa（钢蜗杆配青铜蜗轮）；F<sub>t2</sub> 为蜗轮圆周切向力</div>'+
+    '<div style="overflow-x:auto"><table class="tbl"><tbody>'+
+    '<tr><td class="label">蜗轮输出转矩 T₂</td><td class="form">T<sub>motor</sub>·i<sub>worm</sub>·η<sub>worm</sub></td><td class="val">'+T2w.toFixed(1)+'</td><td class="unit">N·mm</td></tr>'+
+    '<tr><td class="label">蜗轮切向力 F<sub>t2</sub></td><td class="form">2T₂/d₂w</td><td class="val">'+Ft2w.toFixed(2)+'</td><td class="unit">N</td></tr>'+
+    '<tr><td class="label">载荷系数 K</td><td class="form">K<sub>A</sub>×K<sub>v</sub>×K<sub>β</sub></td><td class="val">'+K_w.toFixed(3)+'</td><td class="unit">—</td></tr>'+
+    '<tr><td class="label">蜗轮宽度 b₂</td><td class="form">≤0.75d<sub>a1w</sub></td><td class="val">'+b2w.toFixed(1)+'</td><td class="unit">mm</td></tr>'+
+    '<tr><td class="label">接触应力 σ<sub>H</sub></td><td class="form">Z<sub>E</sub>·√[KF<sub>t2</sub>/(b₂d<sub>1w</sub>)]</td><td class="val '+(worm_H_ok?'ok':'fail')+'">'+sig_H_w.toFixed(2)+'</td><td class="unit">MPa</td></tr>'+
+    '<tr><td class="label">许用接触应力 [σ<sub>H</sub>]</td><td class="form">输入值</td><td class="val">'+p.sigH_w+'</td><td class="unit">MPa</td></tr>'+
+    '</tbody></table></div>'+
+    vd_(worm_H_ok,'✅','❌','蜗轮接触：σ<sub>H</sub> = '+sig_H_w.toFixed(2)+' MPa '+(worm_H_ok?'≤':'>')+'  [σ<sub>H</sub>]='+p.sigH_w+' MPa'+(worm_H_ok?' ✅ 满足':' ❌ 不满足'))+
+    '<div class="sec-ttl" style="margin-top:12px">蜗轮齿根弯曲疲劳强度（式3-22）</div>'+
+    '<div class="alert info" style="margin-bottom:8px">式(3-22)：σ<sub>F</sub> = 1.53·K·F<sub>t2</sub>·Y<sub>Fw</sub> / (b₂·m<sub>w</sub>)<br>'+
+    '其中 Y<sub>Fw</sub> 为蜗轮齿形系数，按当量齿数 z<sub>eq</sub>=z₂/cos³γ 查表插值</div>'+
+    '<div style="overflow-x:auto"><table class="tbl"><tbody>'+
+    '<tr><td class="label">当量齿数 z<sub>eq</sub></td><td class="form">z₂w/cos³γ</td><td class="val">'+zeq_w.toFixed(1)+'</td><td class="unit">—</td></tr>'+
+    '<tr><td class="label">蜗轮齿形系数 Y<sub>Fw</sub></td><td class="form">按z<sub>eq</sub>查表插值</td><td class="val">'+Y_Fw.toFixed(2)+'</td><td class="unit">—</td></tr>'+
+    '<tr><td class="label">弯曲应力 σ<sub>F</sub></td><td class="form">1.53·K·F<sub>t2</sub>·Y<sub>Fw</sub>/(b₂·m<sub>w</sub>)</td><td class="val '+(worm_F_ok?'ok':'fail')+'">'+sig_F_w.toFixed(2)+'</td><td class="unit">MPa</td></tr>'+
+    '<tr><td class="label">许用弯曲应力 [σ<sub>F</sub>]</td><td class="form">输入值</td><td class="val">'+p.sigF_w+'</td><td class="unit">MPa</td></tr>'+
+    '</tbody></table></div>'+
+    vd_(worm_F_ok,'✅','❌','蜗轮弯曲：σ<sub>F</sub> = '+sig_F_w.toFixed(2)+' MPa '+(worm_F_ok?'≤':'>')+'  [σ<sub>F</sub>]='+p.sigF_w+' MPa'+(worm_F_ok?' ✅ 满足':' ❌ 不满足'));
+}
+
+// ═══════════════════════════════════════════
+//  EPS SIMULATION (embedded)
+// ═══════════════════════════════════════════
+var EPS_I_MAX=30;
+var EPS_P={Js:.01,Bs:.01,Ks:180,iw:20,Jc:.08,Bc:.35,Kc:2.3,rp:.016,im:18,Jm:.0001,Kt:.046,Bm:.0007,Kb:.01,R:.1,L:.001,m:4500,Iz:8000,a:1.8,b:2.2,k1:-55000,k2:-60000};
+var EPS_CC={};
+
+function epsTab(idx){
+  document.querySelectorAll('.eps-tab').forEach(function(t,i){t.classList.toggle('active',i===idx);});
+  document.querySelectorAll('.eps-panel').forEach(function(p,i){p.classList.toggle('active',i===idx);});
+  if(idx===0)setTimeout(syncEpsFromMain,30);
+  if(idx===1)setTimeout(epsRunTab1,80);
+  if(idx===2)setTimeout(epsRunTab2,80);
+  if(idx===3)setTimeout(epsRunTab3,80);
+  if(idx===4)setTimeout(epsRunTab4,80);
+  if(idx===5)setTimeout(epsRunTab5,80);
+}
+
+function epsReadParams(){
+  var keys=['Js','Bs','Ks','iw','Jc','Bc','Kc','rp','im','Jm','Kt','Bm','Kb','R','L','m','Iz','a','b','k1','k2'];
+  keys.forEach(function(k){var el=document.getElementById('e_'+k);if(el){var v=parseFloat(el.value);EPS_P[k]=isNaN(v)?EPS_P[k]:v;}});
+  EPS_P.Jt=EPS_P.Jc+EPS_P.Jm*EPS_P.im*EPS_P.im;
+}
+function epsApply(){epsReadParams();alert('EPS参数已应用，请切换子标签页运行仿真。');}
+
+function syncEpsFromMain(){
+  var el;
+  // iw: 转向器角传动比 ← iw_req
+  el=document.getElementById('e_iw'); if(el&&P.iw_req) el.value=P.iw_req;
+  // im: 蜗轮蜗杆传动比 ← i_worm
+  el=document.getElementById('e_im'); if(el&&P.i_worm) el.value=P.i_worm;
+  // m: 整车满载总质量 ← ma
+  el=document.getElementById('e_m'); if(el&&P.ma) el.value=P.ma;
+  epsReadParams();
+}
+
+function epsFuzzyI(t,s){
+  t=Math.abs(t);if(t<.5||s>=120)return 0;t=Math.min(t,8);
+  var kv=Math.exp(-0.020*Math.max(5,s));
+  var shape;if(t<1){shape=0.05*(t-.5)/.5;}else if(t<5){var n=(t-1)/4;shape=0.05+0.95*n*n*(3-2*n);}else shape=1.0;
+  return EPS_I_MAX*kv*shape;
+}
+
+function epsDeriv(x,Td,v_ms,U,mode,It){
+  var ts=x[0],ws=x[1],tc=x[2],wc=x[3],vy=x[4],wz=x[5],I=x[6];
+  var v=Math.max(v_ms,.5),df=tc/EPS_P.iw,Tt=EPS_P.Ks*(ts-tc);
+  var dts=ws,dws=(Td-EPS_P.Bs*ws-Tt)/EPS_P.Js,Ta=mode!=='mechanical'?EPS_P.im*EPS_P.Kt*I:0;
+  var dtc=wc,dwc=(Tt-EPS_P.Bc*wc-EPS_P.Kc*tc+Ta)/EPS_P.Jt;
+  var dvy=((EPS_P.k1+EPS_P.k2)*vy/v+(EPS_P.a*EPS_P.k1-EPS_P.b*EPS_P.k2)*wz/v+EPS_P.k1*df)/EPS_P.m-v*wz;
+  var dwz=((EPS_P.a*EPS_P.k1-EPS_P.b*EPS_P.k2)*vy/v+(EPS_P.a*EPS_P.a*EPS_P.k1+EPS_P.b*EPS_P.b*EPS_P.k2)*wz/v+EPS_P.a*EPS_P.k1*df)/EPS_P.Iz;
+  var dI=0,dei=0;if(mode==='pid'){dI=(U-EPS_P.R*I-EPS_P.Kb*EPS_P.im*wc)/EPS_P.L;dei=It-I;}
+  return[dts,dws,dtc,dwc,dvy,dwz,dI,dei];
+}
+function epsRK4(x,Td,v,U,mode,It,dt){
+  var k1=epsDeriv(x,Td,v,U,mode,It);
+  var x2=x.map(function(v_,i){return v_+.5*dt*k1[i];});
+  var k2=epsDeriv(x2,Td,v,U,mode,It);
+  var x3=x.map(function(v_,i){return v_+.5*dt*k2[i];});
+  var k3=epsDeriv(x3,Td,v,U,mode,It);
+  var x4=x.map(function(v_,i){return v_+dt*k3[i];});
+  var k4=epsDeriv(x4,Td,v,U,mode,It);
+  return x.map(function(v_,i){return v_+(dt/6)*(k1[i]+2*k2[i]+2*k3[i]+k4[i]);});
+}
+function epsSimulate(mode,Td,v_kmh,Kp,Ki,Kd,T,dt){
+  var v_ms=v_kmh/3.6,N=Math.round(T/dt),t=[],wz=[],cur=[];
+  var x=[0,0,0,0,0,0,0,0],pe=0;
+  for(var i=0;i<=N;i++){
+    t.push(i*dt);wz.push(x[5]);cur.push(x[6]);
+    var Tt=EPS_P.Ks*(x[0]-x[2]),It=epsFuzzyI(Math.abs(Tt),v_kmh);
+    var U=0;
+    if(mode==='openloop'){x[6]=It;}
+    else if(mode==='pid'){var e=It-x[6];U=Math.max(-12,Math.min(12,Kp*e+Ki*x[7]+Kd*(e-pe)/dt));pe=e;}
+    x=epsRK4(x,Td,v_ms,U,mode,It,dt);
+  }
+  return{t:t,wz:wz,cur:cur};
+}
+function epsDeriR(x,v_ms,U){
+  var ts=x[0],ws=x[1],tc=x[2],wc=x[3],vy=x[4],wz=x[5],I=x[6];
+  var v=Math.max(v_ms,.5),df=tc/EPS_P.iw,Tt=EPS_P.Ks*(ts-tc);
+  return[ws,(-EPS_P.Bs*ws-Tt)/EPS_P.Js,wc,(Tt-EPS_P.Bc*wc-EPS_P.Kc*tc+EPS_P.im*EPS_P.Kt*I)/EPS_P.Jt,
+    ((EPS_P.k1+EPS_P.k2)*vy/v+(EPS_P.a*EPS_P.k1-EPS_P.b*EPS_P.k2)*wz/v+EPS_P.k1*df)/EPS_P.m-v*wz,
+    ((EPS_P.a*EPS_P.k1-EPS_P.b*EPS_P.k2)*vy/v+(EPS_P.a*EPS_P.a*EPS_P.k1+EPS_P.b*EPS_P.b*EPS_P.k2)*wz/v+EPS_P.a*EPS_P.k1*df)/EPS_P.Iz,
+    (U-EPS_P.R*I-EPS_P.Kb*EPS_P.im*wc)/EPS_P.L,0];
+}
+function epsRK4R(x,vm,U,dt){
+  var k1=epsDeriR(x,vm,U);var x2=x.map(function(v_,i){return v_+.5*dt*k1[i];});
+  var k2=epsDeriR(x2,vm,U);var x3=x.map(function(v_,i){return v_+.5*dt*k2[i];});
+  var k3=epsDeriR(x3,vm,U);var x4=x.map(function(v_,i){return v_+dt*k3[i];});
+  var k4=epsDeriR(x4,vm,U);
+  return x.map(function(v_,i){return v_+(dt/6)*(k1[i]+2*k2[i]+2*k3[i]+k4[i]);});
+}
+function epsSimRet(withEPS,th0,vk,Kpr,Kdr,T,dt){
+  var vm=vk/3.6,N=Math.round(T/dt),t=[],ang=[];
+  var x=[th0,0,th0,0,0,0,0,0];
+  for(var i=0;i<=N;i++){
+    t.push(i*dt);ang.push(x[0]*180/Math.PI);
+    var U=withEPS?Math.max(-12,Math.min(12,-Kpr*x[2]-Kdr*x[3])):0;
+    x=epsRK4R(x,vm,U,dt);
+  }
+  return{t:t,ang:ang};
+}
+function epsSettleTime(t,d,b){var ss=d[d.length-1];if(Math.abs(ss)<1e-6)return null;var bnd=Math.abs(ss)*b;for(var i=d.length-1;i>=0;i--)if(Math.abs(d[i]-ss)>bnd)return t[Math.min(i+1,t.length-1)];return t[0];}
+function epsOvershoot(d){var ss=d[d.length-1];if(Math.abs(ss)<1e-6)return 0;var pk=ss;for(var i=0;i<d.length;i++)if(Math.abs(d[i])>Math.abs(pk))pk=d[i];return Math.abs((pk-ss)/ss)*100;}
+function epsRetTime(t,a,thr){for(var i=0;i<a.length;i++)if(Math.abs(a[i])<thr)return t[i];return t[t.length-1];}
+
+var EPS_PAL=['#0077cc','#ff6a2f','#22aa00','#cc8800','#cc0066','#7733cc','#009966','#bb6600'];
+var EPS_PAL_DARK=['#00ddff','#ff6a2f','#55ff33','#ffc107','#ff6090','#c084fc','#34d399','#fbbf24'];
+
+function epsDrawChart(canvasId,datasets,opts,legendItems,title){
+  var canvas=document.getElementById(canvasId);if(!canvas)return;
+  EPS_CC[canvasId]={datasets:datasets.map(function(d){return Object.assign({},d);}),opts:Object.assign({},opts),legendItems:legendItems,title:title};
+  var dpr=window.devicePixelRatio||1;
+  var w=canvas.parentElement.clientWidth-28||400;
+  var h=Math.max(200,Math.min(300,Math.round(w*.58)));
+  canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
+  canvas.style.width=w+'px';canvas.style.height=h+'px';
+  var ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  epsRenderChart(ctx,w,h,datasets,opts,false,legendItems,title);
+}
+function epsRenderChart(ctx,W,H,datasets,opts,light,legendItems,title){
+  var hasTitle=title&&title.length;var titleH=hasTitle?38:0;
+  var hasLegend=legendItems&&legendItems.length;var legendH=hasLegend?Math.ceil(legendItems.length/4)*30+12:0;
+  var pad={l:68,r:18,t:14,b:50};
+  var chartH=H-titleH-legendH-pad.t-pad.b;var chartW=W-pad.l-pad.r;
+  var chartTop=titleH+pad.t;
+  ctx.fillStyle=light?'#fff':'#060e18';ctx.fillRect(0,0,W,H);
+  if(hasTitle){ctx.fillStyle=light?'#111':'#eaf4ff';ctx.font='bold '+(light?20:16)+'px "Microsoft YaHei",sans-serif';ctx.textAlign='center';ctx.fillText(title,W/2,titleH-6);}
+  var xMn=Infinity,xMx=-Infinity,yMn=Infinity,yMx=-Infinity;
+  datasets.forEach(function(ds){if(!ds.x||!ds.y)return;ds.x.forEach(function(v){if(isFinite(v)){xMn=Math.min(xMn,v);xMx=Math.max(xMx,v);}});ds.y.forEach(function(v){if(isFinite(v)){yMn=Math.min(yMn,v);yMx=Math.max(yMx,v);}});});
+  if(!isFinite(xMn)){xMn=0;xMx=1;}if(!isFinite(yMn)){yMn=0;yMx=1;}
+  if(opts.yMin!==undefined)yMn=opts.yMin;if(opts.yMax!==undefined)yMx=opts.yMax;
+  if(opts.xMin!==undefined)xMn=opts.xMin;if(opts.xMax!==undefined)xMx=opts.xMax;
+  var xR=xMx-xMn||1,yR=yMx-yMn||1;
+  var xL=xMn,xRR=xMx+xR*.02,yB=yMn-yR*.06,yT=yMx+yR*.1;
+  var toX=function(v){return pad.l+(v-xL)/(xRR-xL)*chartW;};
+  var toY=function(v){return chartTop+chartH-(v-yB)/(yT-yB)*chartH;};
+  ctx.fillStyle=light?'#f4f7fb':'#060e18';ctx.fillRect(pad.l,chartTop,chartW,chartH);
+  ctx.strokeStyle=light?'#ccddee':'#1a2e45';ctx.lineWidth=1;
+  for(var i=0;i<=6;i++){var x=pad.l+i*chartW/6;ctx.beginPath();ctx.moveTo(x,chartTop);ctx.lineTo(x,chartTop+chartH);ctx.stroke();}
+  for(var j=0;j<=5;j++){var y=chartTop+j*chartH/5;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+chartW,y);ctx.stroke();}
+  ctx.strokeStyle=light?'#888':'#243d5a';ctx.lineWidth=1.5;ctx.strokeRect(pad.l,chartTop,chartW,chartH);
+  ctx.fillStyle=light?'#334455':'#7aabcc';ctx.font='bold 12px monospace';ctx.textAlign='center';
+  for(var ki=0;ki<=6;ki++){var val=xL+ki*(xRR-xL)/6;ctx.fillText(val.toFixed(val>=100?0:1),pad.l+ki*chartW/6,chartTop+chartH+20);}
+  ctx.textAlign='right';
+  for(var li=0;li<=5;li++){var val2=yB+(5-li)*(yT-yB)/5;ctx.fillText(val2.toFixed(Math.abs(val2)>=10?2:3),pad.l-5,chartTop+li*chartH/5+4);}
+  ctx.fillStyle=light?'#445566':'#6090b0';ctx.font=(light?13:11)+'px "Microsoft YaHei",sans-serif';
+  ctx.textAlign='center';ctx.fillText(opts.xLabel||'',pad.l+chartW/2,chartTop+chartH+42);
+  ctx.save();ctx.translate(14,chartTop+chartH/2);ctx.rotate(-Math.PI/2);ctx.fillText(opts.yLabel||'',0,0);ctx.restore();
+  datasets.forEach(function(ds){
+    if(!ds.x||!ds.y||!ds.x.length)return;
+    ctx.save();
+    var c=light?(ds.screenColor==='#cccccc'?'#555':ds.screenColor||'#000'):ds.screenColor||'#fff';
+    ctx.strokeStyle=c;ctx.lineWidth=ds.lw||2.5;
+    if(ds.dash)ctx.setLineDash(ds.dash);
+    ctx.beginPath();
+    var step=Math.max(1,Math.floor(ds.x.length/(chartW*2))),first=true;
+    for(var di2=0;di2<ds.x.length;di2+=step){var px=toX(ds.x[di2]),py=toY(ds.y[di2]);if(first){ctx.moveTo(px,py);first=false;}else ctx.lineTo(px,py);}
+    ctx.stroke();ctx.setLineDash([]);ctx.restore();
+  });
+  if(hasLegend){
+    var ly=H-legendH+12;var itemW=Math.min(200,W/Math.min(legendItems.length,4));
+    ctx.font='bold '+(light?13:11)+'px "Microsoft YaHei",sans-serif';
+    legendItems.forEach(function(item,i){
+      var col=i%4,row=Math.floor(i/4);var lx=pad.l+col*itemW;var lly=ly+row*26;
+      var c=light?(item.screenColor==='#cccccc'?'#555':item.screenColor):item.screenColor;
+      ctx.fillStyle=c;ctx.fillRect(lx,lly-7,24,4);
+      ctx.fillStyle=light?'#333':'#aaccee';ctx.textAlign='left';ctx.fillText(item.label,lx+30,lly-2);
+    });
+  }
+}
+function epsDlChart(id,filename){
+  var c=EPS_CC[id];if(!c){alert('请先运行仿真生成图表');return;}
+  var W=1600,H=1000;var oc=document.createElement('canvas');oc.width=W;oc.height=H;
+  var ctx=oc.getContext('2d');
+  epsRenderChart(ctx,W,H,c.datasets,c.opts,true,c.legendItems,c.title||filename);
+  var a=document.createElement('a');a.download=filename+'.png';a.href=oc.toDataURL('image/png');a.click();
+}
+function epsDrawHeatmap(canvasId){
+  var canvas=document.getElementById(canvasId);if(!canvas)return;
+  EPS_CC[canvasId]={type:'heatmap'};
+  var dpr=window.devicePixelRatio||1;var w=canvas.parentElement.clientWidth-28||400;var h=Math.max(200,260);
+  canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);canvas.style.width=w+'px';canvas.style.height=h+'px';
+  var ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);epsHeatmapCore(ctx,w,h,false);
+}
+function epsHeatmapCore(ctx,W,H,light){
+  var pad={l:56,r:76,t:light?44:12,b:48};var pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+  ctx.fillStyle=light?'#fff':'#060e18';ctx.fillRect(0,0,W,H);
+  if(light){ctx.fillStyle='#111';ctx.font='bold 18px "Microsoft YaHei",sans-serif';ctx.textAlign='center';ctx.fillText('助力电流热力图（转矩×车速）',W/2,28);}
+  for(var ix=0;ix<100;ix++)for(var iy=0;iy<80;iy++){
+    var tv=ix/100*8,sv=iy/80*120,val=epsFuzzyI(tv,sv)/EPS_I_MAX;
+    var rr=Math.round(val<.5?0:(val-.5)*2*200),g=Math.round(val<.5?val*2*160:(1-(val-.5)*2)*160),b=Math.round(val<.5?140+val*2*80:(1-(val-.5)*2)*100);
+    ctx.fillStyle='rgb('+rr+','+g+','+b+')';ctx.fillRect(pad.l+ix*pw/100,pad.t+(79-iy)*ph/80,pw/100+1,ph/80+1);
+  }
+  ctx.strokeStyle=light?'#888':'#243d5a';ctx.lineWidth=1.5;ctx.strokeRect(pad.l,pad.t,pw,ph);
+  ctx.fillStyle=light?'#334':'#7aabcc';ctx.font='bold 12px monospace';ctx.textAlign='center';
+  for(var xi=0;xi<=5;xi++)ctx.fillText((xi*1.6).toFixed(1),pad.l+xi*pw/5,pad.t+ph+18);
+  ctx.fillStyle=light?'#445566':'#6090b0';ctx.font='12px "Microsoft YaHei",sans-serif';ctx.fillText('转矩 (N·m)',pad.l+pw/2,H-4);
+  ctx.textAlign='right';ctx.fillStyle=light?'#334':'#7aabcc';ctx.font='bold 12px monospace';
+  for(var yi=0;yi<=4;yi++)ctx.fillText(yi*30,pad.l-4,pad.t+(4-yi)*ph/4+4);
+  ctx.save();ctx.translate(13,pad.t+ph/2);ctx.rotate(-Math.PI/2);ctx.fillStyle=light?'#445':'#6090b0';ctx.font='12px "Microsoft YaHei",sans-serif';ctx.textAlign='center';ctx.fillText('车速 (km/h)',0,0);ctx.restore();
+  for(var ci=0;ci<ph;ci++){var v=1-ci/ph,rr2=Math.round(v<.5?0:(v-.5)*2*200),g2=Math.round(v<.5?v*2*160:(1-(v-.5)*2)*160),b2=Math.round(v<.5?140+v*2*80:(1-(v-.5)*2)*100);ctx.fillStyle='rgb('+rr2+','+g2+','+b2+')';ctx.fillRect(pad.l+pw+8,pad.t+ci,16,2);}
+  ctx.fillStyle=light?'#333':'#7aabcc';ctx.font='11px monospace';ctx.textAlign='left';ctx.fillText('30A',pad.l+pw+28,pad.t+8);ctx.fillText('15A',pad.l+pw+28,pad.t+ph/2+4);ctx.fillText('0A',pad.l+pw+28,pad.t+ph+4);
+}
+function epsDlHeatmap(id,filename){
+  var W=1600,H=1000;var oc=document.createElement('canvas');oc.width=W;oc.height=H;
+  epsHeatmapCore(oc.getContext('2d'),W,H,true);
+  var a=document.createElement('a');a.download=filename+'.png';a.href=oc.toDataURL('image/png');a.click();
+}
+
+function epsRunTab1(){
+  epsReadParams();
+  var tMin=parseFloat(document.getElementById('e_t1_tmin').value)||0;
+  var tMax=parseFloat(document.getElementById('e_t1_tmax').value)||8;
+  var speeds=document.getElementById('e_t1_speeds').value.split(',').map(function(s){return parseFloat(s.trim());}).filter(function(x){return !isNaN(x);});
+  var N=200,torqs=Array.from({length:N},function(_,i){return tMin+i*(tMax-tMin)/(N-1);});
+  var ds=speeds.map(function(v,idx){return{x:torqs,y:torqs.map(function(t){return epsFuzzyI(t,v);}),screenColor:EPS_PAL_DARK[idx%8],lw:3};});
+  var leg=speeds.map(function(v,i){return{screenColor:EPS_PAL_DARK[i%8],label:v+' km/h'};});
+  epsDrawChart('ecanvas1a',ds,{xLabel:'方向盘转矩 (N·m)',yLabel:'电流 I (A)',xMin:tMin,xMax:tMax,yMin:0,yMax:28},leg,'助力特性曲线（电流 vs 转矩）');
+  epsDrawHeatmap('ecanvas1b');
+}
+function epsRunTab2(){
+  epsReadParams();
+  var v=parseFloat(document.getElementById('e_t2_v').value)||35;
+  var Td=parseFloat(document.getElementById('e_t2_Td').value)||3;
+  var Kp=parseFloat(document.getElementById('e_t2_Kp').value)||2;
+  var Ki=parseFloat(document.getElementById('e_t2_Ki').value)||1.5;
+  var Kd=parseFloat(document.getElementById('e_t2_Kd').value)||0;
+  var T=parseFloat(document.getElementById('e_t2_T').value)||8;
+  setTimeout(function(){
+    var dt=.001,step=5;
+    var mR=epsSimulate('mechanical',Td,v,0,0,0,T,dt);
+    var oR=epsSimulate('openloop',Td,v,0,0,0,T,dt);
+    var pR=epsSimulate('pid',Td,v,Kp,Ki,Kd,T,dt);
+    var mkds=function(r,fn,c,dash){return{x:r.t.filter(function(_,i){return i%step===0;}),y:r[fn].filter(function(_,i){return i%step===0;}),screenColor:c,lw:2.5,dash:dash};};
+    var leg=[{screenColor:'#cccccc',label:'机械式'},{screenColor:'#ff6a2f',label:'EPS开环'},{screenColor:'#00ddff',label:'PID-EPS'}];
+    epsDrawChart('ecanvas2a',[mkds(mR,'wz','#cccccc',[5,4]),mkds(oR,'wz','#ff6a2f'),mkds(pR,'wz','#00ddff')],{xLabel:'时间 (s)',yLabel:'ωz (rad/s)',xMin:0,xMax:T},leg,'横摆角速度响应曲线对比（v='+v+'km/h, Td='+Td+'N·m）');
+    epsDrawChart('ecanvas2b',[mkds(oR,'cur','#ff6a2f'),mkds(pR,'cur','#00ddff')],{xLabel:'时间 (s)',yLabel:'I (A)',xMin:0,xMax:T,yMin:0},[{screenColor:'#ff6a2f',label:'EPS开环'},{screenColor:'#00ddff',label:'PID-EPS'}],'电机助力电流响应');
+    var f=function(x,T){return x!=null?x.toFixed(2)+'s':'>'+T+'s';};
+    document.getElementById('er2_mt').textContent=f(epsSettleTime(mR.t,mR.wz,.02),T);
+    document.getElementById('er2_mo').textContent=epsOvershoot(mR.wz).toFixed(1)+'%';
+    document.getElementById('er2_pt').textContent=f(epsSettleTime(pR.t,pR.wz,.02),T);
+    document.getElementById('er2_po').textContent=epsOvershoot(pR.wz).toFixed(1)+'%';
+  },60);
+}
+function epsRunTab3(){
+  epsReadParams();
+  var v=parseFloat(document.getElementById('e_t3_v').value)||35;
+  var Td=parseFloat(document.getElementById('e_t3_Td').value)||3;
+  var T=parseFloat(document.getElementById('e_t3_T').value)||8;
+  var kpL=document.getElementById('e_t3_kplist').value.split(',').map(function(s){return parseFloat(s.trim());}).filter(function(x){return !isNaN(x);});
+  var kiL=document.getElementById('e_t3_kilist').value.split(',').map(function(s){return parseFloat(s.trim());}).filter(function(x){return !isNaN(x);});
+  setTimeout(function(){
+    var dt=.002,step=3;
+    var dsKp=kpL.map(function(kp,idx){var r=epsSimulate('pid',Td,v,kp,0,0,T,dt);return{x:r.t.filter(function(_,i){return i%step===0;}),y:r.wz.filter(function(_,i){return i%step===0;}),screenColor:EPS_PAL_DARK[idx%8],lw:2.5};});
+    var dsKi=kiL.map(function(ki,idx){var r=epsSimulate('pid',Td,v,2,ki,0,T,dt);return{x:r.t.filter(function(_,i){return i%step===0;}),y:r.wz.filter(function(_,i){return i%step===0;}),screenColor:EPS_PAL_DARK[idx%8],lw:2.5};});
+    var legKp=kpL.map(function(kp,i){return{screenColor:EPS_PAL_DARK[i%8],label:'Kp='+kp};});
+    var legKi=kiL.map(function(ki,i){return{screenColor:EPS_PAL_DARK[i%8],label:'Ki='+ki};});
+    epsDrawChart('ecanvas3a',dsKp,{xLabel:'时间 (s)',yLabel:'ωz (rad/s)',xMin:0,xMax:T},legKp,'Kp对横摆角速度的影响（Ki=Kd=0）');
+    epsDrawChart('ecanvas3b',dsKi,{xLabel:'时间 (s)',yLabel:'ωz (rad/s)',xMin:0,xMax:T},legKi,'Ki对横摆角速度的影响（Kp=2,Kd=0）');
+  },60);
+}
+function epsRunTab4(){
+  epsReadParams();
+  var v=parseFloat(document.getElementById('e_t4_v').value)||30;
+  var th0=parseFloat(document.getElementById('e_t4_th0').value)*Math.PI/180;
+  var Kpr=parseFloat(document.getElementById('e_t4_Kpr').value)||5;
+  var Kdr=parseFloat(document.getElementById('e_t4_Kdr').value)||0;
+  var T=parseFloat(document.getElementById('e_t4_T').value)||5;
+  var kprL=document.getElementById('e_t4_kprlist').value.split(',').map(function(s){return parseFloat(s.trim());}).filter(function(x){return !isNaN(x);});
+  setTimeout(function(){
+    var dt=.001,step=3;
+    var mR=epsSimRet(false,th0,v,0,0,T,dt);
+    var eR=epsSimRet(true,th0,v,Kpr,Kdr,T,dt);
+    var th0d=Math.round(parseFloat(document.getElementById('e_t4_th0').value));
+    var leg=[{screenColor:'#cccccc',label:'机械式回正'},{screenColor:'#00ddff',label:'EPS回正 Kp_r='+Kpr}];
+    epsDrawChart('ecanvas4a',[
+      {x:mR.t.filter(function(_,i){return i%step===0;}),y:mR.ang.filter(function(_,i){return i%step===0;}),screenColor:'#cccccc',lw:2,dash:[5,4]},
+      {x:eR.t.filter(function(_,i){return i%step===0;}),y:eR.ang.filter(function(_,i){return i%step===0;}),screenColor:'#00ddff',lw:2.5}
+    ],{xLabel:'时间 (s)',yLabel:'θs (°)',xMin:0,xMax:T},leg,'方向盘回正曲线（θ₀='+th0d+'°, v='+v+'km/h）');
+    var dsKpr=kprL.map(function(kp,idx){var r2=epsSimRet(true,th0,v,kp,Kdr,T,dt);return{x:r2.t.filter(function(_,i){return i%step===0;}),y:r2.ang.filter(function(_,i){return i%step===0;}),screenColor:EPS_PAL_DARK[idx%8],lw:2.5};});
+    var legKpr=kprL.map(function(kp,i){return{screenColor:EPS_PAL_DARK[i%8],label:'Kp_r='+kp};});
+    epsDrawChart('ecanvas4b',dsKpr,{xLabel:'时间 (s)',yLabel:'θs (°)',xMin:0,xMax:T},legKpr,'不同Kp_r对回正的影响');
+    var retT=epsRetTime;
+    document.getElementById('er4_mt').textContent=(function(){var t=retT(mR.t,mR.ang,5);return t>=T?'>'+T+'s':t.toFixed(2)+'s';})();
+    document.getElementById('er4_et').textContent=retT(eR.t,eR.ang,5).toFixed(2)+'s';
+  },60);
+}
+function epsRunTab5(){
+  epsReadParams();
+  var speedsEl=document.getElementById('e_t1_speeds');
+  var speeds=speedsEl?speedsEl.value.split(',').map(function(s){return parseFloat(s.trim());}).filter(function(x){return !isNaN(x)&&x>0;}):[10,35,60,100];
+  var t5Speed=speeds[0]||10;
+  var row=document.getElementById('e_t5_btn_row');
+  row.innerHTML=speeds.map(function(v){return '<button class="btn '+(v===t5Speed?'btn-primary':'btn-ghost')+'" style="width:auto;padding:8px 16px;margin-top:0;" onclick="epsT5SetSpeed('+v+')" data-epsv="'+v+'">'+v+' km/h</button>';}).join('');
+  epsT5Draw(t5Speed);
+}
+function epsT5SetSpeed(v){
+  document.querySelectorAll('#e_t5_btn_row button').forEach(function(b){
+    var bv=parseFloat(b.dataset.epsv);b.className='btn '+(bv===v?'btn-primary':'btn-ghost');b.style.width='auto';b.style.padding='8px 16px';b.style.marginTop='0';
+  });
+  epsT5Draw(v);
+}
+function epsT5Draw(v){
+  var N=200,torqs=Array.from({length:N},function(_,i){return i*8/(N-1);});
+  var REAL_IMAX=60;
+  var realI=function(t,s){t=Math.abs(t);if(t<1)return 0;if(t>=5)return REAL_IMAX*(0.95*Math.exp(-0.016*s)+0.05);var n=(t-1)/4;return REAL_IMAX*(0.95*Math.exp(-0.016*s)+0.05)*n*n*(3-2*n);};
+  var simDs={x:torqs,y:torqs.map(function(t){return epsFuzzyI(t,v);}),screenColor:'#00ddff',lw:3};
+  var realDs={x:torqs,y:torqs.map(function(t){return realI(t,v);}),screenColor:'#ff6a2f',lw:3,dash:[8,4]};
+  var yMax=Math.ceil(Math.max.apply(null,realDs.y)/5)*5+5;
+  epsDrawChart('ecanvas5a',[simDs,realDs],{xLabel:'方向盘转矩 (N·m)',yLabel:'电流 I (A)',xMin:0,xMax:8,yMin:0,yMax:yMax},
+    [{screenColor:'#00ddff',label:'仿真 '+v+'km/h'},{screenColor:'#ff6a2f',label:'实车参考 '+v+'km/h'}],'助力电流对比（'+v+' km/h）');
+  document.getElementById('e_t5_heading').textContent='助力电流对比（'+v+' km/h）';
+  var smax=epsFuzzyI(8,v),rmax=realI(8,v);
+  document.getElementById('er5_smax').textContent=smax.toFixed(1)+' A';
+  document.getElementById('er5_rmax').textContent=rmax.toFixed(1)+' A';
+  var speeds2=Array.from({length:120},function(_,i){return i+1;});
+  var diffDs={x:speeds2,y:speeds2.map(function(s){return Math.max(0,realI(5,s)-epsFuzzyI(5,s));}),screenColor:'#ffc107',lw:2.5};
+  epsDrawChart('ecanvas5b',[diffDs],{xLabel:'车速 (km/h)',yLabel:'电流差值 (A)',xMin:0,xMax:120,yMin:0},
+    [{screenColor:'#ffc107',label:'差值 ΔI'}],'全车速域电流差值（T=5 N·m处）');
+}
+
+// ── HELPERS ──
+function f0(v){return Math.round(v).toString()}
+function f1(v){return parseFloat(v).toFixed(1)}
+function f2(v){return parseFloat(v).toFixed(2)}
+function f3(v){return parseFloat(v).toFixed(3)}
+function f4(v){return parseFloat(v).toFixed(4)}
+function arr2str(a){return a.join(' / ')}
+
+function rc_(lbl,cls,val,unit){
+  return '<div class="rc_ '+cls+'"><div class="rl">'+lbl+'</div><div class="rv">'+val+'</div><div class="ru">'+unit+'</div></div>';
+}
+function pr(eq,val,cls){
+  return '<span class="eq">'+eq+'</span><span class="pv '+(cls||'')+'">'+val+'</span>';
+}
+function vd_(ok,pi,fi,msg){
+  return '<div class="verdict '+(ok?'pass':'fail')+'"><div class="vi">'+(ok?pi:fi)+'</div><div class="vt">'+msg+'</div></div>';
+}
+function tr5(name,sym,form,val,unit){
+  return '<tr><td class="label">'+name+'</td><td class="sym">'+sym+'</td><td class="form">'+form+'</td><td class="val">'+val+'</td><td class="unit">'+unit+'</td></tr>';
+}
+function tr5n(name,sym,rec,cur,unit){
+  return '<tr><td class="label">'+name+'</td><td class="sym">'+sym+'</td><td>'+rec+'</td><td class="val">'+cur+'</td><td class="unit">'+unit+'</td></tr>';
+}
+
+// ── roundRect polyfill ──
+if(!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){roundRect(this,x,y,w,h,r);};
+}
+
+window.addEventListener('resize',function(){if(curStep===7)drawDiagram();});
+// ── INIT ──
+autoSelectModule();
+compute();
+
+// ═══════════════════════════════════════════
+//  STUDENT / TEACHER LOGIN
+// ═══════════════════════════════════════════
+const TEACHER_PWD = 'gxuqpp123';
+var appState = {studentId:'', studentName:'', isTeacher:false};
+var teacherData = [];
+
+function doLogin(){
+  var id = document.getElementById('stuId').value.trim();
+  var name = document.getElementById('stuName').value.trim();
+  var idErr = document.getElementById('stuIdErr');
+  var nameErr = document.getElementById('stuNameErr');
+  var ok = true;
+  if(!/^\d{10}$/.test(id)){idErr.style.display='block';ok=false;}else idErr.style.display='none';
+  if(name.length < 2){nameErr.style.display='block';ok=false;}else nameErr.style.display='none';
+  if(!ok)return;
+  appState.studentId = id; appState.studentName = name;
+  document.getElementById('hdrStuName').textContent = name;
+  document.getElementById('hdrStuId').textContent = id;
+  document.getElementById('studentBadgeHdr').style.display = 'inline-block';
+  document.getElementById('loginOverlay').style.display = 'none';
+  compute();
+}
+function openTeacherLogin(){document.getElementById('teacherLoginOverlay').style.display='flex';document.getElementById('teacherPwd').value='';document.getElementById('pwdErr').style.display='none';}
+function closeTeacherLogin(){document.getElementById('teacherLoginOverlay').style.display='none';}
+function doTeacherLogin(){
+  if(document.getElementById('teacherPwd').value===TEACHER_PWD){
+    appState.isTeacher=true;
+    document.getElementById('teacherLoginOverlay').style.display='none';
+    showTeacherPanel();
+  }else{document.getElementById('pwdErr').style.display='block';}
+}
+
+// ═══════════════════════════════════════════
+//  TEACHER PANEL
+// ═══════════════════════════════════════════
+function showTeacherPanel(){
+  var overlay=document.createElement('div');overlay.className='login-overlay';overlay.id='teacherPanel';overlay.style.display='flex';
+  var panel=document.createElement('div');
+  panel.style.cssText='background:#fff;padding:28px;border-radius:12px;max-width:1000px;width:95%;max-height:90vh;overflow-y:auto;';
+  panel.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <h2 style="color:#1a5fa8;font-size:20px">📊 循环球转向器设计课程评分统计（教师管理）</h2>
+    <button onclick="closeTeacherPanel()" style="padding:8px 18px;background:#c0392b;color:#fff;border:none;border-radius:7px;cursor:pointer;font-weight:700">关闭</button>
+  </div>
+  <div class="card">
+    <div class="card-h"><span class="icon-n">📁</span>导入学生报告文件</div>
+    <div class="alert info">收集学生TXT文件 → 点击导入 → 系统自动提取评分数据 → 导出CSV分析</div>
+    <input type="file" id="tchrFileInput" multiple accept=".txt,.json" style="display:none" onchange="handleTeacherFile(event)">
+    <div class="upload-zone" onclick="document.getElementById('tchrFileInput').click()">
+      <div style="font-size:44px;margin-bottom:10px">📂</div>
+      <div style="font-size:14px;color:#555">点击选择 或 拖拽 TXT/JSON 文件</div>
+    </div>
+    <div id="tchrUploadStatus" style="margin-top:10px;font-size:13px;color:#555"></div>
+  </div>
+  <div id="tchrStatsContent"></div>`;
+  overlay.appendChild(panel);document.body.appendChild(overlay);
+  var uz=panel.querySelector('.upload-zone');
+  uz.addEventListener('dragover',function(e){e.preventDefault();uz.style.borderColor='#1a5fa8';});
+  uz.addEventListener('dragleave',function(){uz.style.borderColor='';});
+  uz.addEventListener('drop',function(e){e.preventDefault();uz.style.borderColor='';handleTeacherFile({target:{files:e.dataTransfer.files}});});
+  if(teacherData.length>0)displayTeacherStats();
+}
+function closeTeacherPanel(){var p=document.getElementById('teacherPanel');if(p)p.remove();}
+
+function handleTeacherFile(event){
+  var files=event.target.files;if(!files||!files.length)return;
+  var loaded=0,errors=0;
+  var statusDiv=document.getElementById('tchrUploadStatus');
+  statusDiv.innerHTML='<span style="color:#1a5fa8">正在处理...</span>';
+  Array.from(files).forEach(function(file){
+    var reader=new FileReader();
+    reader.onload=function(e){
+      try{
+        var content=e.target.result,data=null;
+        if(file.name.endsWith('.txt')){
+          var m=content.match(/--- SYSTEM DATA BEGIN ---\s*([\s\S]*?)\s*--- SYSTEM DATA END ---/);
+          if(m&&m[1])data=JSON.parse(m[1].trim());else{errors++;check();return;}
+        }else{data=JSON.parse(content);}
+        if(data&&data.studentId&&data.totalScore!==undefined){teacherData.push(data);loaded++;}else errors++;
+      }catch(ex){errors++;}
+      check();
+    };
+    reader.readAsText(file);
+  });
+  function check(){
+    if(loaded+errors<files.length)return;
+    statusDiv.innerHTML='<span style="color:green">✓ 成功导入 '+loaded+' 个文件</span>'+(errors?' <span style="color:red">✗ '+errors+' 个失败</span>':'');
+    if(loaded>0)displayTeacherStats();
+  }
+}
+
+function analyzeTeacherData(data){
+  var map={};
+  data.forEach(function(log){
+    var id=log.studentId;
+    if(!map[id])map[id]={studentId:id,studentName:log.studentName,submissions:[],maxScore:0,minScore:100,totalScore:0,firstTime:null,lastTime:null};
+    var s=map[id];s.submissions.push(log);s.totalScore+=log.totalScore;
+    s.maxScore=Math.max(s.maxScore,log.totalScore);s.minScore=Math.min(s.minScore,log.totalScore);
+    var t=new Date(log.timestamp);
+    if(!s.firstTime||t<s.firstTime)s.firstTime=t;if(!s.lastTime||t>s.lastTime)s.lastTime=t;
+  });
+  var students=Object.values(map);
+  students.forEach(function(s){s.avgScore=s.totalScore/s.submissions.length;s.count=s.submissions.length;});
+  var avg=students.length?students.reduce(function(a,b){return a+b.avgScore;},0)/students.length:0;
+  var excellent=students.filter(function(s){return s.avgScore>=90;}).length;
+  return{totalStudents:students.length,totalSubmissions:data.length,avgScore:avg,
+    excellentRate:students.length?Math.round(excellent/students.length*100):0,
+    students:students.sort(function(a,b){return a.studentId.localeCompare(b.studentId);})};
+}
+
+function displayTeacherStats(){
+  var stats=analyzeTeacherData(teacherData);
+  var html='<div class="score-banner" style="margin-top:16px"><div style="font-size:18px;font-weight:700;margin-bottom:12px">📈 班级总体统计</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px"><div class="score-di"><div class="dl">学生总数</div><div class="dv">'+stats.totalStudents+'</div></div><div class="score-di"><div class="dl">提交次数</div><div class="dv">'+stats.totalSubmissions+'</div></div><div class="score-di"><div class="dl">班级平均分</div><div class="dv">'+stats.avgScore.toFixed(1)+'</div></div><div class="score-di"><div class="dl">优秀率(≥90)</div><div class="dv">'+stats.excellentRate+'%</div></div></div></div>';
+  html+='<div class="card" style="margin-top:0"><div class="card-h"><span class="icon-n">👥</span>学生列表 <button onclick="exportTchrCSV()" style="margin-left:auto;padding:6px 14px;background:#1a7a3c;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:12px;font-weight:700">📊 导出CSV</button><button onclick="clearTchrData()" style="margin-left:8px;padding:6px 14px;background:#c0392b;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:12px;font-weight:700">🗑 清空</button></div><div id="tchrStudentList"></div></div>';
+  document.getElementById('tchrStatsContent').innerHTML=html;
+  var listEl=document.getElementById('tchrStudentList');
+  if(!stats.students.length){listEl.innerHTML='<div style="text-align:center;padding:40px;color:#888">暂无数据</div>';return;}
+  listEl.innerHTML=stats.students.map(function(s){
+    var grade=s.avgScore>=90?'优秀':s.avgScore>=80?'良好':s.avgScore>=70?'中等':s.avgScore>=60?'及格':'不及格';
+    return '<div class="student-item"><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:15px;font-weight:700;color:#1a5fa8">'+s.studentName+'（'+s.studentId+'）</div><div style="font-size:13px;color:#555">均分：<b>'+s.avgScore.toFixed(1)+'（'+grade+'）</b>  提交：'+s.count+'次</div></div><div style="font-size:12px;color:#888;margin-top:4px">最高：'+s.maxScore+' | 最低：'+s.minScore+'</div></div>';
+  }).join('');
+}
+
+function clearTchrData(){if(!confirm('确定清空？'))return;teacherData=[];displayTeacherStats();}
+function exportTchrCSV(){
+  if(!teacherData.length){alert('请先导入数据！');return;}
+  var stats=analyzeTeacherData(teacherData);
+  var csv='\uFEFF学号,姓名,提交次数,平均分,最高分,最低分,等级\n';
+  stats.students.forEach(function(s){
+    var g=s.avgScore>=90?'优秀':s.avgScore>=80?'良好':s.avgScore>=70?'中等':s.avgScore>=60?'及格':'不及格';
+    csv+=s.studentId+','+s.studentName+','+s.count+','+s.avgScore.toFixed(1)+','+s.maxScore+','+s.minScore+','+g+'\n';
+  });
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='循环球转向器评分统计_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+}
+
+// ═══════════════════════════════════════════
+//  INTELLIGENT SCORING (循环球转向器)
+// ═══════════════════════════════════════════
+var _lastCircBallScore = null;
+
+function calcCircBallScore(){
+  compute();
+  var r = _lastCircBallCalc;
+  if(!r){alert('请先完成计算再评分');return;}
+  var sc={}, total=0;
+
+  // ── ① 转向系基本参数 (20分) ──
+  var s1=0;
+  // M₀ > 0 且合理（N·mm）
+  var M0_ok = r.M0 > 0;
+  s1 += M0_ok ? 5 : 0;
+  // Fh满足标准（货车≤250, 轿车≤100）
+  var limit_val = P.ma>=3000 ? 250 : 100;
+  var Fh_ok = r.Fh_actual <= limit_val;
+  s1 += Fh_ok ? 7 : (r.Fh_actual <= limit_val*1.2 ? 4 : 1);
+  // 偏转角关系正确（外角<内角）
+  var angle_ok = r.theta_out > 0 && r.theta_in > 0 && r.theta_out < r.theta_in;
+  s1 += angle_ok ? 5 : 0;
+  // iw范围合理 [14,32]
+  var iw_ok = r.iw >= 14 && r.iw <= 32;
+  s1 += iw_ok ? 3 : (r.iw >= 10 && r.iw <= 40 ? 1 : 0);
+  sc.basic = Math.min(20, s1);
+
+  // ── ② 循环球螺旋副参数 (20分) ──
+  var s2=0;
+  // b = P − d > 2.5mm
+  var b_ok = r.b_clear > 2.5;
+  s2 += b_ok ? 6 : (r.b_clear > 1.5 ? 3 : 0);
+  // n_balls 合理 (>0, ≤60)
+  var n_ok = r.n_balls > 0 && r.n_balls <= 60;
+  s2 += n_ok ? 5 : (r.n_balls > 0 ? 2 : 0);
+  // 导程角 γ ∈ [8°, 10°]
+  var gamma_ok = r.gamma_deg >= 8 && r.gamma_deg <= 10;
+  s2 += gamma_ok ? 5 : (r.gamma_deg >= 6 && r.gamma_deg <= 12 ? 3 : 1);
+  // 逆效率 η- > 0 (可逆式)
+  var eta_m_ok = r.eta_minus > 0;
+  s2 += eta_m_ok ? 4 : 0;
+  sc.ballscrew = Math.min(20, s2);
+
+  // ── ③ 效率与强度校核 (30分) ──
+  var s3=0;
+  // 正效率 η+ 合理 (>0.5)
+  var etap_ok = r.eta_plus > 0.5;
+  s3 += etap_ok ? 5 : (r.eta_plus > 0.3 ? 2 : 0);
+  // 逆效率
+  s3 += r.eta_minus > 0 ? 5 : 0;
+  // 齿扇弯曲应力 σw ≤ σw_allow
+  var sw_ok = r.sigma_w <= r.sigma_w_allow;
+  s3 += sw_ok ? 10 : (r.sigma_w <= r.sigma_w_allow*1.2 ? 6 : (r.sigma_w > 0 ? 3 : 0));
+  // 钢球接触应力 σH ≤ σH_allow
+  var sH_ok = r.sigma_H <= r.sigma_H_allow;
+  s3 += sH_ok ? 10 : (r.sigma_H <= r.sigma_H_allow*1.2 ? 6 : (r.sigma_H > 0 ? 3 : 0));
+  sc.strength = Math.min(30, s3);
+
+  // ── ④ 摇臂轴 & 花键设计 (15分) ──
+  var s4=0;
+  // 摇臂轴直径 d_arm > 0
+  var darm_ok = r.d_arm > 0;
+  s4 += darm_ok ? 8 : 0;
+  // 花键弯曲应力 σ_sp ≤ 150 MPa
+  var sp_ok = r.sigma_sp_bend <= 150;
+  s4 += sp_ok ? 7 : (r.sigma_sp_bend <= 180 ? 4 : (r.sigma_sp_bend > 0 ? 2 : 0));
+  sc.shaft = Math.min(15, s4);
+
+  // ── ⑤ 助力减速机构 (15分) ──
+  var s5=0;
+  // T_motor_min 合理 (>0)
+  var tmotor_ok = r.T_motor_min > 0;
+  s5 += tmotor_ok ? 6 : (r.T_motor_min !== undefined ? 1 : 0);
+  // 蜗轮蜗杆接触强度
+  s5 += r.worm_H_ok ? 5 : (r.sig_H_w > 0 ? 2 : 0);
+  // 蜗轮蜗杆弯曲强度
+  s5 += r.worm_F_ok ? 4 : (r.sig_F_w > 0 ? 1 : 0);
+  sc.eps = Math.min(15, s5);
+
+  total = sc.basic + sc.ballscrew + sc.strength + sc.shaft + sc.eps;
+  sc.total = total;
+  _lastCircBallScore = sc;
+
+  var grade = total>=90?'优秀':total>=80?'良好':total>=70?'中等':total>=60?'及格':'不及格';
+  var colorMap = {优秀:'#1a7a3c',良好:'#2e7dd1',中等:'#b8860b',及格:'#c55a11',不及格:'#c0392b'};
+
+  var html = '<div class="score-banner">' +
+    '<div style="font-size:16px;font-weight:700">循环球式转向器设计智能评分报告</div>' +
+    '<div class="score-big">'+total+'</div>' +
+    '<div style="font-size:20px;font-weight:700;color:'+colorMap[grade]+'">'+grade+'</div>' +
+    '<div class="score-details-grid">' +
+    '<div class="score-di"><div class="dl">转向系参数</div><div class="dv">'+sc.basic+'/20</div></div>' +
+    '<div class="score-di"><div class="dl">螺旋副参数</div><div class="dv">'+sc.ballscrew+'/20</div></div>' +
+    '<div class="score-di"><div class="dl">效率&强度</div><div class="dv">'+sc.strength+'/30</div></div>' +
+    '<div class="score-di"><div class="dl">摇臂轴&花键</div><div class="dv">'+sc.shaft+'/15</div></div>' +
+    '<div class="score-di"><div class="dl">EPS助力机构</div><div class="dv">'+sc.eps+'/15</div></div>' +
+    '</div></div>';
+
+  // Detail table
+  var details = [
+    {cat:'转向系基本参数',items:[
+      {name:'原地转向阻力矩 M₀',val:r.M0.toFixed(1)+' N·mm',status:M0_ok,score:5,max:5},
+      {name:'转向盘手力 Fh ≤'+limit_val+' N',val:r.Fh_actual.toFixed(1)+' N',status:Fh_ok,score:Fh_ok?7:(r.Fh_actual<=limit_val*1.2?4:1),max:7},
+      {name:'偏转角关系 θ_out < θ_in',val:r.theta_out.toFixed(2)+'° / '+r.theta_in.toFixed(2)+'°',status:angle_ok,score:angle_ok?5:0,max:5},
+      {name:'角传动比 iw ∈[14,32]',val:r.iw.toFixed(2),status:iw_ok,score:iw_ok?3:1,max:3}
+    ]},
+    {cat:'循环球螺旋副',items:[
+      {name:'钢球间距 b=P-d > 2.5mm',val:r.b_clear.toFixed(2)+' mm',status:b_ok,score:b_ok?6:(r.b_clear>1.5?3:0),max:6},
+      {name:'每路钢球数 n ∈(0,60]',val:r.n_balls,status:n_ok,score:n_ok?5:(r.n_balls>0?2:0),max:5},
+      {name:'导程角 γ ∈[8°,10°]',val:r.gamma_deg.toFixed(2)+'°',status:gamma_ok,score:gamma_ok?5:(r.gamma_deg>=6&&r.gamma_deg<=12?3:1),max:5},
+      {name:'逆效率 η- > 0（可逆式）',val:r.eta_minus.toFixed(3),status:eta_m_ok,score:eta_m_ok?4:0,max:4}
+    ]},
+    {cat:'效率与强度校核',items:[
+      {name:'正效率 η⁺ > 0.5',val:(r.eta_plus*100).toFixed(1)+'%',status:etap_ok,score:etap_ok?5:(r.eta_plus>0.3?2:0),max:5},
+      {name:'逆效率 η⁻ > 0',val:(r.eta_minus*100).toFixed(1)+'%',status:r.eta_minus>0,score:r.eta_minus>0?5:0,max:5},
+      {name:'齿扇弯曲 σw ≤ 540 MPa',val:r.sigma_w.toFixed(1)+' / 540 MPa',status:sw_ok,score:sw_ok?10:(r.sigma_w<=r.sigma_w_allow*1.2?6:3),max:10},
+      {name:'接触应力 σH ≤ 2500 MPa',val:r.sigma_H.toFixed(1)+' / 2500 MPa',status:sH_ok,score:sH_ok?10:(r.sigma_H<=r.sigma_H_allow*1.2?6:3),max:10}
+    ]},
+    {cat:'摇臂轴&花键设计',items:[
+      {name:'摇臂轴最小直径 d_arm',val:r.d_arm.toFixed(2)+' mm',status:darm_ok,score:darm_ok?8:0,max:8},
+      {name:'花键弯曲应力 ≤ 150 MPa',val:r.sigma_sp_bend.toFixed(1)+' MPa',status:sp_ok,score:sp_ok?7:(r.sigma_sp_bend<=180?4:2),max:7}
+    ]},
+    {cat:'EPS助力减速机构',items:[
+      {name:'电机最小转矩 T_motor',val:r.T_motor_min.toFixed(1)+' N·mm',status:tmotor_ok,score:tmotor_ok?6:1,max:6},
+      {name:'蜗轮蜗杆接触强度',val:r.sig_H_w.toFixed(1)+' MPa',status:r.worm_H_ok,score:r.worm_H_ok?5:2,max:5},
+      {name:'蜗轮蜗杆弯曲强度',val:r.sig_F_w.toFixed(1)+' MPa',status:r.worm_F_ok,score:r.worm_F_ok?4:1,max:4}
+    ]}
+  ];
+
+  details.forEach(function(cat){
+    html += '<div class="card" style="margin-top:0"><div class="card-h"><span class="icon-n">📋</span>'+cat.cat+'</div>' +
+      '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
+      '<thead><tr><th style="background:#1a5fa8;color:#fff;padding:8px 10px;text-align:left">校核项目</th>' +
+      '<th style="background:#1a5fa8;color:#fff;padding:8px 10px;text-align:center">计算值</th>' +
+      '<th style="background:#1a5fa8;color:#fff;padding:8px 10px;text-align:center">状态</th>' +
+      '<th style="background:#1a5fa8;color:#fff;padding:8px 10px;text-align:center">得分</th></tr></thead><tbody>';
+    cat.items.forEach(function(item,idx){
+      var bg = idx%2===0?'':'background:#f8faff;';
+      html += '<tr style="'+bg+'"><td style="padding:7px 10px">'+item.name+'</td>' +
+        '<td style="padding:7px 10px;text-align:center;font-family:monospace">'+item.val+'</td>' +
+        '<td style="padding:7px 10px;text-align:center">'+(item.status?'<span class="badge-ok">✓ 满足</span>':'<span class="badge-err">✗ 不满足</span>')+'</td>' +
+        '<td style="padding:7px 10px;text-align:center"><span class="badge-'+(item.score===item.max?'ok':item.score>0?'warn':'err')+'">'+item.score+'/'+item.max+'</span></td></tr>';
+    });
+    html += '</tbody></table></div>';
+  });
+
+  document.getElementById('scoreResult8').innerHTML = html;
+}
+
+function generateCircBallReport(){
+  if(!_lastCircBallScore){alert('请先点击"生成智能评分"！');return;}
+  compute();
+  var r = _lastCircBallCalc;
+  var sc = _lastCircBallScore;
+  var now = new Date();
+  var grade = sc.total>=90?'优秀':sc.total>=80?'良好':sc.total>=70?'中等':sc.total>=60?'及格':'不及格';
+  var txt = '═══════════════════════════════════════════\n';
+  txt += '循环球式转向器设计计算工具 · 智能评分报告\n';
+  txt += '广西大学 · 车辆工程专业 · 《汽车设计》课程设计\n';
+  txt += '═══════════════════════════════════════════\n\n';
+  txt += '学号：' + (appState.studentId||'—') + '\n';
+  txt += '姓名：' + (appState.studentName||'—') + '\n';
+  txt += '生成时间：' + now.toLocaleString() + '\n\n';
+  txt += '─────────── 总分 ───────────\n';
+  txt += '总分：' + sc.total + ' / 100  (' + grade + ')\n\n';
+  txt += '─────────── 各项得分 ───────────\n';
+  txt += '转向系基本参数：' + sc.basic + '/20\n';
+  txt += '循环球螺旋副：' + sc.ballscrew + '/20\n';
+  txt += '效率&强度校核：' + sc.strength + '/30\n';
+  txt += '摇臂轴&花键：' + sc.shaft + '/15\n';
+  txt += 'EPS助力机构：' + sc.eps + '/15\n\n';
+  txt += '─────────── 关键计算结果 ───────────\n';
+  txt += '前轴负荷 G₁ = ' + r.G1.toFixed(1) + ' N\n';
+  txt += '原地转向阻力矩 M₀ = ' + r.M0.toFixed(1) + ' N·mm\n';
+  txt += '转向盘手力 Fh = ' + r.Fh_actual.toFixed(1) + ' N\n';
+  txt += '角传动比 iw = ' + r.iw.toFixed(3) + '\n';
+  txt += '导程角 γ = ' + r.gamma_deg.toFixed(2) + '°\n';
+  txt += '正效率 η⁺ = ' + (r.eta_plus*100).toFixed(1) + '%\n';
+  txt += '逆效率 η⁻ = ' + (r.eta_minus*100).toFixed(1) + '%\n';
+  txt += '钢球间距 b = ' + r.b_clear.toFixed(2) + ' mm\n';
+  txt += '每路钢球数 n = ' + r.n_balls + '\n';
+  txt += '齿扇弯曲应力 σw = ' + r.sigma_w.toFixed(1) + ' MPa\n';
+  txt += '接触应力 σH = ' + r.sigma_H.toFixed(1) + ' MPa\n';
+  txt += '摇臂轴最小径 d = ' + r.d_arm.toFixed(2) + ' mm\n';
+  txt += '电机最小转矩 T_motor = ' + r.T_motor_min.toFixed(1) + ' N·mm\n\n';
+  txt += '─────────── 系统数据（供教师统计） ───────────\n';
+  txt += '--- SYSTEM DATA BEGIN ---\n';
+  var sysData = {
+    studentId: appState.studentId,
+    studentName: appState.studentName,
+    totalScore: sc.total,
+    scoreBasic: sc.basic,
+    scoreBallscrew: sc.ballscrew,
+    scoreStrength: sc.strength,
+    scoreShaft: sc.shaft,
+    scoreEps: sc.eps,
+    grade: grade,
+    timestamp: now.toISOString()
+  };
+  txt += JSON.stringify(sysData) + '\n';
+  txt += '--- SYSTEM DATA END ---\n';
+  var blob = new Blob([txt], {type:'text/plain;charset=utf-8'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = appState.studentId+'_'+appState.studentName+'_循环球式转向器_计算结果评分报告.txt';
+  a.click();
+}
+
+// ═══════════════════════════════════════════
+//  REPORT REVIEW (说明书评阅)
+// ═══════════════════════════════════════════
+function onRevFileSelect(event){
+  var file = event.target.files[0];
+  if(!file) return;
+  document.getElementById('revFileName').textContent = '已选择：' + file.name;
+  document.getElementById('revUploadZone').style.borderColor = '#1a5fa8';
+}
+
+async function extractRevPdfText(arrayBuffer){
+  var fullText = '';
+  var pdfjsLib = window.pdfjsLib || window['pdfjs-dist/build/pdf'];
+  if(!pdfjsLib){throw new Error('PDF.js 未加载，请确认网络连接后刷新重试。');}
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  var pdf = await pdfjsLib.getDocument({data:arrayBuffer}).promise;
+  for(var i=1;i<=pdf.numPages;i++){
+    var page = await pdf.getPage(i);
+    var content = await page.getTextContent();
+    var lineMap = {};
+    content.items.forEach(function(item){
+      var y = Math.round(item.transform[5]/5)*5;
+      if(!lineMap[y])lineMap[y]=[];
+      lineMap[y].push({x:item.transform[4],str:item.str});
+    });
+    var lines = Object.keys(lineMap).sort(function(a,b){return b-a;}).map(function(y){
+      return lineMap[y].sort(function(a,b){return a.x-b.x;}).map(function(t){return t.str;}).join('');
+    });
+    fullText += lines.join('\n') + '\n';
+  }
+  return fullText.replace(/\n{3,}/g,'\n\n').trim();
+}
+
+function scoreRevReport(text){
+  var R={score_data:0,score_format:0,score_content:0,data_details:[],format_details:[],content_details:[]};
+  compute();
+  var r = _lastCircBallCalc;
+  if(!r) return R;
+
+  // ─ 数据符合度（70分）─
+  var params=[
+    {name:'原地转向阻力矩 M₀', kws:['转向阻力矩','M₀','M_R','阻力矩','MR'], val:r.M0/1000, unit:'N·m', tol:0.03, max:6},
+    {name:'转向盘手力 Fh', kws:['手力','Fh','F_h','切向力'], val:r.Fh_actual, unit:'N', tol:0.03, max:5},
+    {name:'外轮偏转角 θ_out', kws:['外轮','偏转角','θ_out','外偏角'], val:r.theta_out, unit:'°', tol:0.03, max:4},
+    {name:'内轮偏转角 θ_in', kws:['内轮','偏转角','θ_in','内偏角'], val:r.theta_in, unit:'°', tol:0.03, max:4},
+    {name:'角传动比 iw', kws:['角传动比','iw','i_w','传动比'], val:r.iw, unit:'', tol:0.03, max:5},
+    {name:'导程角 γ', kws:['导程角','γ','gamma','螺线角'], val:r.gamma_deg, unit:'°', tol:0.03, max:5},
+    {name:'正效率 η⁺', kws:['正效率','η⁺','η+','eta_plus'], val:r.eta_plus*100, unit:'%', tol:0.03, max:5},
+    {name:'钢球间距 b=P-d', kws:['钢球间距','间距余量','b=P'], val:r.b_clear, unit:'mm', tol:0.03, max:5},
+    {name:'齿扇弯曲应力 σw', kws:['齿扇','弯曲应力','σw','sigma_w','式8-32'], val:r.sigma_w, unit:'MPa', tol:0.03, max:8},
+    {name:'接触应力 σH', kws:['接触应力','σH','σ_H','式8-30','球面接触'], val:r.sigma_H, unit:'MPa', tol:0.03, max:8},
+    {name:'花键弯曲应力', kws:['花键','弯曲应力','渐开线花键','σ_sp'], val:r.sigma_sp_bend, unit:'MPa', tol:0.03, max:6},
+    {name:'摇臂轴最小径 d_arm', kws:['摇臂轴','最小直径','d_arm','式8-33'], val:r.d_arm, unit:'mm', tol:0.03, max:6},
+    {name:'电机最小转矩 T_motor', kws:['电机','助力转矩','T_motor','式3-20'], val:r.T_motor_min, unit:'N·mm', tol:0.03, max:3},
+  ];
+  params.forEach(function(p2){
+    if(!p2.val||p2.val===0){R.data_details.push({item:p2.name,expected:'（未计算）',found:'—',status:'skip',score:0,max:p2.max});return;}
+    var ref=p2.val,foundVal=null,candidates=[];
+    p2.kws.forEach(function(kw){
+      var re=new RegExp(kw,'gi');var km;
+      while((km=re.exec(text))!==null){
+        var win=text.slice(Math.max(0,km.index-60),Math.min(text.length,km.index+200));
+        var nums=win.match(/[0-9]+(?:\.[0-9]+)?/g)||[];
+        nums.forEach(function(nStr){var v=parseFloat(nStr);if(ref>50&&v<5)return;if(ref>1&&v<0.001)return;candidates.push(v);});
+      }
+    });
+    var score=0,status='miss';
+    if(candidates.length>0){
+      foundVal=candidates.reduce(function(best,v){return Math.abs(v-ref)<Math.abs(best-ref)?v:best;});
+      var diff=Math.abs(foundVal-ref)/Math.max(Math.abs(ref),0.001);
+      if(diff<=p2.tol){score=p2.max;status='ok';}
+      else if(diff<=p2.tol*2.5){score=Math.round(p2.max*0.55);status='warn';}
+      else{score=Math.round(p2.max*0.2);status='err';}
+    }
+    R.score_data+=score;
+    R.data_details.push({item:p2.name,expected:ref.toFixed?ref.toFixed(2)+' '+p2.unit:ref+' '+p2.unit,found:foundVal!==null?foundVal.toString()+' '+p2.unit:'未提及',status:status,score:score,max:p2.max});
+  });
+  R.score_data=Math.min(70,R.score_data);
+
+  // ─ 内容质量（20分）─
+  var ctChecks=[
+    {name:'参考文献/国标引用',desc:'引用《汽车设计》等文献',max:5,fn:function(){var n=(text.match(/GB[\\/T\s]*\d+|国家标准|汽车设计|参考文献/gi)||[]).length;return n>=3?5:n>=1?3:0;}},
+    {name:'计算过程完整',desc:'公式推导、数据代入、求解过程',max:5,fn:function(){return(/公式|代入|求得|计算得|由.*得/.test(text)?3:0)+(/步骤|由式|代入/.test(text)?2:0);}},
+    {name:'设计分析深度',desc:'方案分析、校核验证、合理性论述',max:5,fn:function(){var ks=['分析','合理性','满足','校核','齿扇','钢球','转向','螺杆','循环球'];return Math.min(5,Math.round(ks.filter(function(k){return text.includes(k);}).length*0.6));}},
+    {name:'内容充实度',desc:'正文字数（≥5000字满分）',max:5,fn:function(){var n=text.replace(/\s/g,'').length;return n>=5000?5:n>=3000?4:n>=1500?2:1;}},
+  ];
+  ctChecks.forEach(function(c){var s=c.fn();R.score_content+=s;R.content_details.push({name:c.name,desc:c.desc,score:s,max:c.max});});
+  R.score_content=Math.min(20,R.score_content);
+
+  // ─ 排版格式（10分）─
+  var fmtChecks=[
+    {name:'章节结构完整',desc:'含绪论、计算、结论、参考文献',max:3,fn:function(){return(/绪论|前言|概述/.test(text)?1:0)+(/计算|设计计算/.test(text)?1:0)+(/结论|总结/.test(text)?0.5:0)+(/参考文献/.test(text)?0.5:0);}},
+    {name:'图表编号规范',desc:'"图x"和"表x"编号',max:2,fn:function(){return(/图\s*\d+/.test(text)?1:0)+(/表\s*\d+/.test(text)?1:0);}},
+    {name:'公式编号',desc:'括号形式公式编号',max:2,fn:function(){return/[（(]\s*\d+[-\d]*\s*[）)]|式[（(]/.test(text)?2:0;}},
+    {name:'单位规范',desc:'正确使用SI单位',max:2,fn:function(){var us=['N·m','N/mm','MPa','mm','N·s','kN',' N '];return Math.min(2,us.filter(function(u){return text.includes(u);}).length>3?2:1);}},
+    {name:'标题层次清晰',desc:'多级标题结构',max:1,fn:function(){return/^[一二三四五六七八九十]+[、.．]|^\d+\s+[\u4e00-\u9fff]/m.test(text)?1:0;}},
+  ];
+  fmtChecks.forEach(function(c){var s=Math.round(c.fn());R.score_format+=s;R.format_details.push({name:c.name,desc:c.desc,score:s,max:c.max});});
+  R.score_format=Math.min(10,R.score_format);
+
+  R.total=R.score_data+R.score_content+R.score_format;
+  return R;
+}
+
+async function gradeRevReport(){
+  var fileInput=document.getElementById('revFile');
+  if(!fileInput.files||!fileInput.files[0]){alert('请先选择说明书 PDF 文件！');return;}
+  var res=document.getElementById('revGradeResult');
+  document.getElementById('revBtnArea').style.display='none';
+  res.innerHTML='<div class="ai-loading"><div class="spinner"></div><div style="font-size:14px;color:#1a5fa8;font-weight:700">正在提取 PDF 文字，请稍候…</div></div>';
+  try{
+    var ab=await fileInput.files[0].arrayBuffer();
+    var text=await extractRevPdfText(ab);
+    if(text.length<50)throw new Error('未能提取到文字。请确认PDF含可选中文字（非纯扫描图片）。');
+    var r=scoreRevReport(text);
+    window._lastRevGrade=r;
+    window._lastRevText=text;
+    renderRevGrade(r,text);
+    document.getElementById('revReportBtns').style.display='block';
+  }catch(err){
+    res.innerHTML='<div class="card"><div style="background:#fde8e7;border:1px solid #c0392b;border-radius:7px;padding:14px;color:#c0392b"><b>❌ 评阅失败：</b>'+err.message+'</div></div>';
+    document.getElementById('revBtnArea').style.display='block';
+  }
+}
+
+function renderRevGrade(r,text){
+  var grade=r.total>=90?'优秀':r.total>=80?'良好':r.total>=70?'中等':r.total>=60?'及格':'不及格';
+  var statusIcon={ok:'<span class="badge-ok">✓ 一致</span>',warn:'<span class="badge-warn">△ 偏差</span>',err:'<span class="badge-err">✗ 差异大</span>',miss:'<span style="color:#999">— 未提及</span>',skip:'<span style="color:#aaa">— 跳过</span>'};
+  var dataRows=r.data_details.map(function(d){
+    return '<tr><td style="padding:6px 10px">'+d.item+'</td><td style="padding:6px 10px;font-family:monospace">'+d.expected+'</td><td style="padding:6px 10px;font-family:monospace">'+d.found+'</td><td style="padding:6px 10px">'+statusIcon[d.status]+'</td><td style="padding:6px 10px;text-align:center"><span class="badge-'+(d.score===d.max?'ok':d.score>0?'warn':'err')+'">'+d.score+'/'+d.max+'</span></td></tr>';
+  }).join('');
+  var ctRows=r.content_details.map(function(d){return '<tr><td style="padding:6px 10px"><b>'+d.name+'</b></td><td style="padding:6px 10px;font-size:12px;color:#666">'+d.desc+'</td><td style="padding:6px 10px;text-align:center"><span class="badge-'+(d.score===d.max?'ok':d.score>0?'warn':'err')+'">'+d.score+'/'+d.max+'</span></td></tr>';}).join('');
+  var fmtRows=r.format_details.map(function(d){return '<tr><td style="padding:6px 10px"><b>'+d.name+'</b></td><td style="padding:6px 10px;font-size:12px;color:#666">'+d.desc+'</td><td style="padding:6px 10px;text-align:center"><span class="badge-'+(d.score===d.max?'ok':d.score>0?'warn':'err')+'">'+d.score+'/'+d.max+'</span></td></tr>';}).join('');
+  var wc=text.replace(/\s/g,'').length;
+  document.getElementById('revGradeResult').innerHTML=`
+  <div class="score-banner" style="margin-top:16px">
+    <div style="font-size:16px;font-weight:700">说明书评阅总分</div>
+    <div class="score-big">${r.total}</div>
+    <div style="font-size:20px;font-weight:700;margin-top:4px">${grade}</div>
+    <div class="score-details-grid">
+      <div class="score-di"><div class="dl">数据符合度</div><div class="dv">${r.score_data}/70</div></div>
+      <div class="score-di"><div class="dl">内容质量</div><div class="dv">${r.score_content}/20</div></div>
+      <div class="score-di"><div class="dl">排版格式</div><div class="dv">${r.score_format}/10</div></div>
+      <div class="score-di"><div class="dl">正文字数</div><div class="dv">${wc}</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-h"><span class="icon-n">📊</span>数据符合度明细（70分）</div>
+    <div style="overflow-x:auto"><table class="result-table-rev">
+      <thead><tr><th>校核项目</th><th>工具计算值（参考）</th><th>说明书中找到的值</th><th>符合度</th><th>得分</th></tr></thead>
+      <tbody>${dataRows}</tbody>
+    </table></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><span class="icon-n">📖</span>内容质量明细（20分）</div>
+    <div style="overflow-x:auto"><table class="result-table-rev">
+      <thead><tr><th>评分项目</th><th>评分依据</th><th>得分</th></tr></thead>
+      <tbody>${ctRows}</tbody>
+    </table></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><span class="icon-n">📐</span>排版格式明细（10分）</div>
+    <div style="overflow-x:auto"><table class="result-table-rev">
+      <thead><tr><th>评分项目</th><th>评分依据</th><th>得分</th></tr></thead>
+      <tbody>${fmtRows}</tbody>
+    </table></div>
+  </div>`;
+}
+
+function generateRevReportFile(){
+  var r = window._lastRevGrade;
+  if(!r){alert('请先评阅说明书！');return;}
+  var grade=r.total>=90?'优秀':r.total>=80?'良好':r.total>=70?'中等':r.total>=60?'及格':'不及格';
+  var txt='═══════════════════════════════════════════\n循环球式转向器设计计算工具 · 说明书评阅报告\n广西大学 · 车辆工程专业\n═══════════════════════════════════════════\n\n';
+  txt+='学号：'+(appState.studentId||'—')+'\n姓名：'+(appState.studentName||'—')+'\n生成时间：'+new Date().toLocaleString()+'\n\n';
+  txt+='总分：'+r.total+' / 100  ('+grade+')\n';
+  txt+='  数据符合度：'+r.score_data+'/70\n';
+  txt+='  内容质量：'+r.score_content+'/20\n';
+  txt+='  排版格式：'+r.score_format+'/10\n\n';
+  txt+='─── 数据符合度明细 ───\n';
+  r.data_details.forEach(function(d){txt+=(d.status==='ok'?'✓':d.status==='warn'?'△':'✗')+' '+d.item+'  参考值: '+d.expected+'  找到: '+d.found+'  得分: '+d.score+'/'+d.max+'\n';});
+  txt+='\n─── 内容质量明细 ───\n';
+  r.content_details.forEach(function(d){txt+=d.name+'  '+d.score+'/'+d.max+'  ('+d.desc+')\n';});
+  txt+='\n─── 排版格式明细 ───\n';
+  r.format_details.forEach(function(d){txt+=d.name+'  '+d.score+'/'+d.max+'  ('+d.desc+')\n';});
+  var blob=new Blob([txt],{type:'text/plain;charset=utf-8'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(appState.studentId||'学号')+'_'+(appState.studentName||'姓名')+'_循环球式转向器_说明书评阅报告.txt';a.click();
+}
+
+// ── Window init ──
+window.addEventListener('load', function(){
+  document.getElementById('loginOverlay').style.display='flex';
+  document.getElementById('stuName').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+  document.getElementById('stuId').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+  document.getElementById('teacherPwd').addEventListener('keydown',function(e){if(e.key==='Enter')doTeacherLogin();});
+});
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+if (e.key === 'F12' || 
+(e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+(e.ctrlKey && e.key === 'U') ||
+(e.ctrlKey && e.key === 'S')) {
+e.preventDefault();
+return false;
+}
+});
+</script>
+<script>
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+    if (e.key === 'F12' || 
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+        (e.ctrlKey && e.key === 'U') ||
+        (e.ctrlKey && e.key === 'S')) {
+      e.preventDefault();
+      return false;
+    }
+  });
+</script>
+</body>
+</html>
